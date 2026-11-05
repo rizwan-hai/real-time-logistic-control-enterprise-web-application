@@ -1,6 +1,6 @@
 # ADR 0007: Idempotent Offline Command Queue
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-05
 
 ## Context

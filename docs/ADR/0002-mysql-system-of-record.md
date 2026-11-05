@@ -1,6 +1,6 @@
 # ADR 0002: MySQL as Transactional System of Record
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-04
 
 ## Context

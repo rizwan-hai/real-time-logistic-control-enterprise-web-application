@@ -1,6 +1,6 @@
 # ADR 0001: Modular Monolith
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-04
 
 ## Context

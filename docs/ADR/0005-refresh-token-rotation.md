@@ -1,6 +1,6 @@
 # ADR 0005: Rotating Refresh Token Families
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-04
 
 ## Context

@@ -1,6 +1,6 @@
 # ADR 0009: Idempotent Commands and Optimistic Concurrency
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-05
 
 ## Context

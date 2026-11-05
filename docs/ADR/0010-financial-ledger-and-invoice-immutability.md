@@ -1,6 +1,6 @@
 # ADR 0010: Immutable Issued Invoices and Append-Only Corrections
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-05
 
 ## Context

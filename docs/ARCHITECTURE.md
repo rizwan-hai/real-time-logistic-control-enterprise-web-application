@@ -1,6 +1,6 @@
 # System Architecture
 
-**Status:** Proposed target architecture; no application implementation exists in the inspected workspace (2026-11-04).
+**Status:** Approved target architecture for the foundation phase; product-spec validation remains pending because `docs/SPEC.md` is not present in this checkout.
 
 ## Goals and boundaries
 

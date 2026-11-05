@@ -1,6 +1,6 @@
 # ADR 0003: UUID Public Identifiers
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-04
 
 ## Context

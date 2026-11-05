@@ -1,6 +1,6 @@
 # ADR 0008: Time-Partitioned GPS Event Store
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-05
 
 ## Context

@@ -1,6 +1,6 @@
 # ADR 0006: Object Storage for POD Documents
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-04
 
 ## Context

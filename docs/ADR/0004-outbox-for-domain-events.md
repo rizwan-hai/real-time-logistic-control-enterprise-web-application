@@ -1,6 +1,6 @@
 # ADR 0004: Transactional Outbox for Domain Events
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-04
 
 ## Context
