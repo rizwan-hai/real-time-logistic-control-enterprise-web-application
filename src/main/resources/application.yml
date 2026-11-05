@@ -17,6 +17,14 @@ spring:
   data:
     redis:
       timeout: 2s
+  mail:
+    host: ${SMTP_HOST:localhost}
+    port: ${SMTP_PORT:1025}
+    username: ${SMTP_USERNAME:}
+    password: ${SMTP_PASSWORD:}
+    properties:
+      mail.smtp.auth: ${SMTP_AUTH:false}
+      mail.smtp.starttls.enable: ${SMTP_STARTTLS:false}
   jackson:
     time-zone: UTC
     default-property-inclusion: non_null
@@ -49,6 +57,18 @@ springdoc:
 logging:
   config: classpath:logback-spring.xml
 app:
+  identity:
+    issuer: logistics-platform
+    audience: logistics-api
+    access-token-minutes: 15
+    refresh-token-days: 7
+    password-reset-minutes: 30
+    app-base-url: ${APP_BASE_URL:http://localhost:5173}
+    from-email: ${MAIL_FROM:no-reply@logistics.local}
+    jwt-secret: ${APP_JWT_SECRET:local-development-only-secret-change-this-64-bytes-minimum-000000}
+    dev-admin-email: ${DEV_ADMIN_EMAIL:admin@logistics.local}
+    dev-admin-password: ${DEV_ADMIN_PASSWORD:LocalAdmin123!ChangeMe}
+    secure-cookies: false
   rate-limit:
     enabled: true
     requests: 120
@@ -89,6 +109,11 @@ spring:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT:6379}
 app:
+  identity:
+    jwt-secret: ${APP_JWT_SECRET}
+    dev-admin-email: ${DEV_ADMIN_EMAIL:}
+    dev-admin-password: ${DEV_ADMIN_PASSWORD:}
+    secure-cookies: true
   minio:
     endpoint: ${MINIO_ENDPOINT}
     access-key: ${MINIO_ACCESS_KEY}
@@ -110,6 +135,11 @@ spring:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT:6379}
 app:
+  identity:
+    jwt-secret: ${APP_JWT_SECRET}
+    dev-admin-email: ${DEV_ADMIN_EMAIL:}
+    dev-admin-password: ${DEV_ADMIN_PASSWORD:}
+    secure-cookies: true
   minio:
     endpoint: ${MINIO_ENDPOINT}
     access-key: ${MINIO_ACCESS_KEY}

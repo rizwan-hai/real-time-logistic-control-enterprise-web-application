@@ -12,7 +12,9 @@ class InfrastructureMigrationTest {
         dataSource.setDriverClassName("org.h2.Driver");
         Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load().migrate();
         var jdbc = new org.springframework.jdbc.core.JdbcTemplate(dataSource);
-        for (String table : new String[]{"NUMBER_SEQUENCE", "SETTING", "AUDIT_LOG", "ATTACHMENT", "OUTBOX_EVENT"}) {
+        for (String table : new String[]{"NUMBER_SEQUENCE", "SETTING", "AUDIT_LOG", "ATTACHMENT", "OUTBOX_EVENT",
+                "USER_ACCOUNT", "ROLE", "PERMISSION", "USER_ROLE", "ROLE_PERMISSION", "REFRESH_TOKEN",
+                "PASSWORD_RESET_TOKEN", "PASSWORD_HISTORY", "LOGIN_AUDIT", "DEVICE_SESSION", "RECOVERY_CODE"}) {
             Integer count = jdbc.queryForObject("select count(*) from information_schema.tables where upper(table_name) = ?", Integer.class, table);
             assertThat(count).as("table %s should be migrated", table).isEqualTo(1);
         }

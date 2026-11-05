@@ -1,6 +1,8 @@
 # Roles and Permissions
 
-**Status:** Proposed RBAC baseline supplemented by object/tenant scope checks. Assignments are not implemented.
+**Status:** Phase 0C implements the identity tables, permission evaluator, tenant-aware permission resolution, role assignments, user/role/permission administration, and customer/driver/warehouse object-scope checks. The broad business permission matrix below remains proposed until each business module lands.
+
+Phase 0C identity management permissions are `identity.users.read`, `identity.users.manage`, `identity.roles.read`, `identity.roles.manage`, `identity.permissions.read`, `identity.permissions.manage`, and `identity.sessions.manage`. These are seeded only under the `dev` profile. Production provisioning of initial identity roles and grants remains an operational bootstrap decision.
 
 | Role | Typical scope | Example capability set |
 |---|---|---|
