@@ -44,3 +44,27 @@ Messages are localized where appropriate; `code` is stable and clients should br
 ## Security and contract evolution
 
 Bearer access token for REST. Refresh token must be delivered in a Secure, HttpOnly, SameSite cookie for browser clients (CSRF controls required) or protected platform storage for driver clients; never localStorage. Define allowed CORS origins. Validate object access in service layer. Breaking changes require `/v2` or an explicitly compatible migration window. Contract tests and generated OpenAPI diff checks are planned for Phase 0B onward.
+
+## Command and response contracts (baseline)
+
+All commands return a resource representation or `202 Accepted` only when work is genuinely asynchronous. Create returns `201 Created` with `Location`; reads return `200`; deletes/cancellations return `204` or the updated resource. Commands include `Idempotency-Key` for client retries and `If-Match` (ETag) for version-sensitive updates. Stable pagination is cursor-based for event feeds and may be page/size for bounded master-data lists; maximum page size is 100. Monetary/quantity fields are decimal strings in JSON to prevent binary floating-point loss. Dates use RFC 3339 UTC instants; business-local dates include an explicit local date and zone.
+
+| Operation | Request essentials | Success / key errors |
+|---|---|---|
+| `POST /api/v1/auth/login` | login, password, optional device label | `200` tokens/session; `401 CREDENTIALS_INVALID`, `429 RATE_LIMITED` |
+| `POST /api/v1/auth/refresh` | HttpOnly cookie or protected client token | `200` rotated token; `401 REFRESH_TOKEN_INVALID/REUSE_DETECTED` |
+| `POST /api/v1/orders` | customer ID, lines, ship-to snapshot, requested date, currency | `201`; validation/reference conflict |
+| `POST /api/v1/orders/{id}/commands/confirm` | version, optional reason | `200`; `409 STATE_TRANSITION_INVALID/OPTIMISTIC_LOCK_CONFLICT` |
+| `POST /api/v1/shipments/{id}/commands/dispatch` | trip/assignment reference, version | `200`; `409`, `422 INSUFFICIENT_STOCK` or `POD_REQUIRED` as policy applies |
+| `POST /api/v1/driver/location-batches` | batch ID, device time, points with lat/lon/accuracy/observedAt | `202` accepted count/rejected point indexes; `400`, `413`, `429` |
+| `GET /api/v1/shipments/{id}/tracking` | cursor, from/to | `200` authorized event page; out-of-scope resolves to `404` |
+| `POST /api/v1/shipments/{id}/pod/upload-intents` | content length, declared MIME, checksum, capture metadata | `201` short-lived upload intent; `413`, `415`, `403` |
+| `POST /api/v1/pod/{id}/complete` | object key token, observed checksum | `202` scanning/validation; `409` invalid state, `422` checksum/type failure |
+| `POST /api/v1/invoices/{id}/commands/issue` | expected version, approval reference | `200` immutable invoice; `409`, `422` policy/separation-of-duties failure |
+| `POST /api/v1/offline/sync` | device ID and ordered commands with stable command IDs | per-command applied/rejected/conflict result; retry is idempotent |
+
+The precise field schemas, enums, limits, and role scopes are generated in OpenAPI during foundation work after the missing product spec is supplied. Signed object URLs are bearer capabilities: short TTL, one object and operation, no list permission; complete/scan/accept remains a server-side workflow.
+
+## Offline synchronization contract
+
+The driver client stores a bounded task snapshot and an append-only local command queue. Each command contains `commandId` (UUID), entity ID, expected entity version, command type, payload, client-created time and dependency IDs. Upload in order; server stores a durable idempotency result keyed by actor/device/command ID. Applied commands return canonical server state/version; duplicates return the original result; stale or invalid commands return a typed conflict requiring user resolution. The client never overwrites server state optimistically as final truth. Location batches can be accepted independently and deduplicated by device+batch/point ID. Offline credentials are not placed in browser storage beyond platform-protected session mechanisms, and queued data is encrypted where the platform supports it; logout/device revocation clears local credentials and sensitive cache.

@@ -37,3 +37,23 @@ Use namespaced keys, e.g. `orders.read`, `orders.create`, `orders.submit`, `orde
 ## Enforcement rules
 
 Enforce authorization in Spring Security and application services, including background jobs and WebSocket subscriptions. Scope every query/mutation to organization, assigned warehouse/region, own driver assignment, or customer account. Deny by default. Prevent self-escalation and separation-of-duties violations; log grants/revocations. Avoid trusting roles or object IDs from request payload. Permission catalog, role matrix, customer data visibility, and emergency access rules require approval in Phase 0C.
+
+## Role-permission matrix (proposed)
+
+Legend: **M** manage/create, **R** scoped read, **A** approve/issue, **X** execute own assigned task, **—** no grant. Every grant is additionally constrained by tenant and object scope.
+
+| Role | Users / roles | Orders | Warehouse / stock | Transport / tracking | Exceptions / POD | Billing | Audit / config |
+|---|---|---|---|---|---|---|---|
+| Platform Administrator | M platform | — | — | — | — | — | M platform config; scoped audit only |
+| Organization Administrator | M org users/roles | R | R | R | R | R | R org audit |
+| Operations Manager | — | M/R | R | M/R | M/R | R | R operational audit |
+| Order Clerk | — | M/R | — | R | R | — | — |
+| Warehouse Operator | — | R | X/R; adjust only explicit grant | — | — | — | — |
+| Transport Dispatcher | — | R | R availability | M/R | R/acknowledge | — | — |
+| Driver | — | assigned R | assigned tasks X | own assigned X/location write | assigned exception/POD X | — | — |
+| Finance Clerk | — | R | — | — | — | M prepare/payment record | — |
+| Finance Approver | — | R | — | — | — | A within policy | R finance audit |
+| Customer User | — | own account R/create allowed | — | own shipment R | own requests/POD view by policy | own invoice R | — |
+| Auditor | — | scoped R | scoped R | scoped R | scoped R | scoped R | R audit; no mutation |
+
+This matrix is a role template, not a hard-coded authorization shortcut. Fine-grained permission keys are assigned explicitly; high-risk actions require re-authentication or dual control if policy mandates it. Platform administration does not grant implicit access to customer business records.

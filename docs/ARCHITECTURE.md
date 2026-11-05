@@ -79,3 +79,71 @@ Docker Compose supports local development with MySQL, Redis, MinIO, MailHog, API
 ## Requirements traceability
 
 See [REQUIREMENTS_TRACEABILITY.md](REQUIREMENTS_TRACEABILITY.md) for requirement-to-module/phase/test mapping. All items there are planned, not implemented.
+
+## C4 deployment and domain flow views
+
+```mermaid
+flowchart TB
+  subgraph People[People and external systems]
+    OpsUser[Operations user]
+    CustomerUser[Customer user]
+    DriverUser[Driver device / PWA]
+    CarrierSystem[Carrier APIs / webhooks]
+    MapSystem[Map and geocode provider]
+    MailSystem[SMTP provider]
+  end
+  subgraph Boundary[Trusted application boundary]
+    Edge[TLS ingress / rate limits]
+    Web[Web clients]
+    API[Spring Boot modular monolith]
+    Auth[Identity and scoped authorization]
+    Features[Orders, WMS, TMS, tracking, POD, billing, audit]
+    Adapters[Integration ports and adapters]
+  end
+  subgraph Data[Private data plane]
+    SQL[(MySQL system of record)]
+    Redis[(Redis ephemeral/cache)]
+    Blob[(Private object store)]
+    Outbox[(Outbox rows in MySQL)]
+    Telemetry[Metrics, logs, traces]
+  end
+  OpsUser --> Edge
+  CustomerUser --> Edge
+  DriverUser --> Edge
+  Edge --> Web --> API
+  API --> Auth --> Features
+  Features --> SQL
+  Features --> Blob
+  API --> Redis
+  Features --> Outbox
+  Outbox --> Adapters
+  Adapters <--> CarrierSystem
+  Adapters <--> MapSystem
+  Adapters --> MailSystem
+  API --> Telemetry
+```
+
+```mermaid
+flowchart LR
+  Cmd[Authorized command] --> Tx[Single MySQL transaction]
+  Tx --> Agg[Aggregate update + version]
+  Tx --> Audit[Audit row]
+  Tx --> O[Outbox event]
+  O --> Poll[Publisher claims rows]
+  Poll --> Consumer[Idempotent internal consumer / adapter]
+  Consumer --> Projection[Read model / notification / provider]
+  Consumer -->|failure| Retry[Backoff, attempts, dead-letter state]
+  Retry --> Poll
+```
+
+## Modular monolith boundary rules
+
+Each business capability owns its tables, repositories, domain invariants, and public application interface. A module may call another module's application interface synchronously for a command prerequisite, but cannot import its persistence entities or write its tables. Cross-aggregate effects that can happen after commit use versioned outbox events. Analytics uses projections/read queries and does not become a second authority. Shared code is limited to technical primitives (IDs, clock, error envelope, security context); business terms and policies stay in the owning module.
+
+## Security architecture controls
+
+Terminate TLS at a controlled ingress; use secure headers and strict CORS. Authenticate with short-lived access credentials and rotating refresh sessions; authorize every request in both route and use-case layer. Derive tenant/customer scope from trusted identity and assignments, then apply it in every query and websocket subscription. Store secrets via deployment secret injection, hash passwords with an approved adaptive algorithm, encrypt backups and object storage, redact logs, and audit privileged actions. Uploads use private quarantine, content sniffing, size limits, malware scanning, and promotion only after validation. Apply rate limits to authentication, GPS, upload-intent and public endpoints. Threat model tenant escape, credential theft, replay, IDOR, malicious uploads, webhook spoof/replay, and operational insider access before release.
+
+## Financial consistency rules
+
+Represent amounts and quantities as exact decimal values with explicit currency/unit. Calculate invoice totals from immutable line snapshots using one approved rounding policy per currency/jurisdiction. Draft/approved invoices may change under version control; issue is atomic and freezes number, customer/address, lines, tax basis, totals and timestamps. Issued invoices are never updated or deleted; correction is a linked credit note/void/reissue event with actor, reason, and audit record. Payment and provider callbacks are append-only, uniquely keyed, idempotent, and reconciled against invoice currency/remaining balance in a transaction. Do not call a payment provider inside the invoice transaction; persist intent/outbox, call provider asynchronously, and reconcile uncertain outcomes. Enforce separation of duties for prepare/approve/issue where required; exact limits and tax policy remain open.

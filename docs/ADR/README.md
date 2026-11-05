@@ -1,3 +1,5 @@
 # Architecture Decision Records
 
 ADRs record proposed decisions for review. They are not implementation evidence. Status remains **Proposed** until the user approves the architecture; supersede accepted decisions with a new ADR rather than rewriting history.
+
+Index: [0001 modular monolith](0001-modular-monolith.md), [0002 MySQL system of record](0002-mysql-system-of-record.md), [0003 UUID public identifiers](0003-uuid-public-identifiers.md), [0004 transactional outbox](0004-outbox-for-domain-events.md), [0005 refresh token rotation](0005-refresh-token-rotation.md), [0006 object storage](0006-object-storage-for-pod.md), [0007 offline queue](0007-offline-command-queue.md), [0008 GPS partitioning](0008-gps-event-partitioning.md), [0009 API idempotency](0009-api-idempotency-and-versioning.md), [0010 financial immutability](0010-financial-ledger-and-invoice-immutability.md), [0011 upload quarantine](0011-private-object-storage-and-upload-quarantine.md), [0012 scoped authorization](0012-authorization-scope-and-audit.md).
