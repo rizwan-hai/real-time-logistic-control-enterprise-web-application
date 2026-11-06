@@ -1,14 +1,15 @@
 # Project Progress
 
-Last reviewed: 2026-11-05
+Last reviewed: 2026-11-06
 
 ## Current status
 
 - Phase 0A: **Approved for implementation by the Phase 0B request; product-spec validation remains pending.**
 - Phase 0B: **Foundation implemented; automated tests pass.**
-- Phase 0C: **Identity backend and initial React identity UI implemented; core backend tests pass. Frontend package installation and Playwright execution remain pending.**
-- Phases 0D through 11: **Not started.**
-- Application implementation: **Phase 0B foundation plus Phase 0C identity/authentication.** Business-domain workflows remain unimplemented.
+- Phase 0C: **Identity backend and initial React identity UI implemented; core backend tests pass.**
+- Phase 0D: **Frontend foundation implemented; build, lint, unit tests, and browser tests are pending because npm dependency installation is blocked by repeated registry timeouts.**
+- Phases 1 through 11: **Not started.**
+- Application implementation: **Backend foundation, identity/authentication, and reusable frontend shell.** Business-domain workflows remain unimplemented.
 - Source validation: **Pending** because `.github/copilot-instructions.md` and `docs/SPEC.md` are absent. Foundation follows the available approved design set and should be reconciled when those sources are restored.
 
 ## Phase 0A deliverables
@@ -46,3 +47,14 @@ Last reviewed: 2026-11-05
 - [ ] Full SPEC/security architecture validation. `docs/SPEC.md` and `.github/copilot-instructions.md` are absent from the workspace, so requirements alignment remains provisional.
 
 Latest backend evidence: `mvn test` passes all 22 tests, including identity schema validation, authentication integration, active-session revocation, MFA challenge handling, and object scope. MySQL production behavior and browser E2E remain unverified. Password reset delivery currently uses the configured SMTP provider and only sends to email-enabled accounts; an SMS provider is not configured for phone-only accounts.
+
+## Phase 0D deliverables
+
+- [x] React 18, strict TypeScript, Vite, Ant Design 5, React Router, TanStack Query, Zustand, Axios, React Hook Form, Zod, and i18next project configuration.
+- [x] Feature-based source structure, application providers, responsive shell, route guards, and staff/customer/driver/public tracking route groups.
+- [x] Shared data, form, upload, status, timeline, confirmation, loading/error, boundary, and unsaved-change components.
+- [x] Axios bearer/CSRF handling, serialized silent refresh, RFC 7807 error mapping, and generated OpenAPI type workflow.
+- [x] English/Persian localization, RTL direction, Persian digit and Jalali date/currency formatting.
+- [x] Initial Vitest coverage for shared status display, permissions, protected routing, locale formatting, and API error mapping.
+- [ ] Dependency installation, production build, lint, and Playwright authentication E2E. Repeated npm installs were approved but ended with `ECONNRESET` / `EIDLETIMEOUT` while fetching the Ant Design tarball; the offline retry confirms that tarball is not cached.
+- [ ] Validate against `docs/SPEC.md` and `.github/copilot-instructions.md`; both remain absent from the workspace.
