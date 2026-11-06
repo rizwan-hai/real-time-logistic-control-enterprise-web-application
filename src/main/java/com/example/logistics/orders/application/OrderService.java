@@ -43,6 +43,7 @@ public class OrderService {
         if(target.equals("CONFIRMED")) validateConfirmation(org,id,order);
         db.update("UPDATE sales_order SET status=?,version=version+1,updated_at=CURRENT_TIMESTAMP(6) WHERE id=? AND organization_id=?",target,id.toString(),org.toString());
         history(org,id,from,target,actor,reason==null?"":reason); event(org,"OrderStatusChanged",id,Map.of("orderId",id,"from",from,"to",target,"reason",reason==null?"":reason));
+        if(target.equals("CANCELLED") && !"TRANSPORT_ONLY".equals(order.get("fulfillmentType"))) event(org,"InventoryReservationReleaseRequested",id,Map.of("orderId",id,"contractVersion",1));
         return get(org,id);
     }
 

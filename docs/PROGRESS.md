@@ -9,9 +9,17 @@ Last reviewed: 2026-11-06
 - Phase 0C: **Identity backend and initial React identity UI implemented; core backend tests pass.**
 - Phase 0D: **Frontend foundation implemented; build, lint, unit tests, and browser tests are pending because npm dependency installation is blocked by repeated registry timeouts.**
 - Phase 0E: **Deployment foundation files created; Docker runtime verification is blocked because Docker CLI is unavailable in this environment.**
-- Phases 1 through 11: **Not started.**
-- Application implementation: **Backend foundation, identity/authentication, and reusable frontend shell.** Business-domain workflows remain unimplemented.
+- Phases 1, 2, and 4 through 11: **Not started.**
+- Phase 3: **WMS implementation started; incomplete.**
+- Application implementation: **Backend foundation, identity/authentication, initial order/shipment workflows, and partial WMS vertical slice.** Other business-domain workflows remain unimplemented.
 - Source validation: **Pending** because `.github/copilot-instructions.md` and `docs/SPEC.md` are absent. Foundation follows the available approved design set and should be reconciled when those sources are restored.
+
+## Phase 3 WMS implementation status
+
+- [x] Added initial warehouse/inventory schema, tenant-scoped warehouse API, inventory dashboard/search, movement history, receipt quality decisions, lot/serial/expiry fields, capacity checks, putaway, FEFO/FIFO allocation, partial reservations, picking scans, package creation, count entry/approval, and compensating movement endpoint.
+- [x] Order cancellation now emits the versioned `InventoryReservationReleaseRequested` outbox contract alongside the order status event.
+- [ ] Phase 3 acceptance is **not complete**. The workspace has no `docs/SPEC.md`; outbox event delivery/consumer runtime is not implemented, so confirmation/cancellation events are persisted but not automatically consumed. Purchase-order/ASN management, putaway compatibility policy administration, reservation expiry worker, low/reorder/expiry alert generation, pick waves, shipping handover, camera barcode capture, and Code128/QR label PDF generation remain incomplete.
+- [ ] Automated verification was not run for Phase 3. `mvn -DskipTests compile` succeeded; MySQL migration execution and frontend build remain unverified.
 
 ## Phase 0A deliverables
 
