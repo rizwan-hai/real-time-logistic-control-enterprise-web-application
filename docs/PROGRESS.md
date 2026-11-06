@@ -10,7 +10,8 @@ Last reviewed: 2026-11-06
 - Phase 0D: **Frontend foundation implemented; build, lint, unit tests, and browser tests are pending because npm dependency installation is blocked by repeated registry timeouts.**
 - Phase 0E: **Deployment foundation files created; Docker runtime verification is blocked because Docker CLI is unavailable in this environment.**
 - Phase 4: **Initial TMS vertical slice implemented; full operational validation and browser verification remain incomplete.**
-- Phases 1, 2, and 5 through 11: **Not started.**
+- Phase 5: **Substantial tracking slice implemented; acceptance is not complete.** Device-authenticated batch GPS ingestion, async batch persistence, event idempotency, monthly event-time partitioning, Redis latest-position projection, tenant-scoped STOMP updates, geofences, ETA estimates, basic exception rules and public tracking links are present. The Control Tower includes fleet/alert/geofence views and trip-history replay. Real map tiles/clustering, rule tuning/notifications, sustained benchmark evidence and production MySQL/Redis/WebSocket verification remain incomplete.
+- Phases 1, 2, and 6 through 11: **Not started.**
 - Phase 3: **WMS implementation started; incomplete.**
 - Application implementation: **Backend foundation, identity/authentication, initial order/shipment workflows, and partial WMS vertical slice.** Other business-domain workflows remain unimplemented.
 - Phase 4 includes trip lifecycle/assignment APIs and history, shipment trip linking and reassignment, trip expenses/fuel logs, carrier tender invite/quote/award, routing interfaces with a Haversine estimate adapter, a nearest-neighbor/2-opt heuristic, a pure operational validation policy, and a dispatch board with dnd-kit shipment assignment. Vehicle/load/license/hour checks are available through an explicit validation endpoint and currently rely on caller-supplied snapshots. OSRM/Google adapters, map visualization, stop reordering, automatic route-constraint integration, and full tender/delivery UX are not yet implemented.
@@ -58,6 +59,16 @@ Last reviewed: 2026-11-06
 - [ ] Full SPEC/security architecture validation. `docs/SPEC.md` and `.github/copilot-instructions.md` are absent from the workspace, so requirements alignment remains provisional.
 
 Latest backend evidence: `mvn test` passes all 22 tests, including identity schema validation, authentication integration, active-session revocation, MFA challenge handling, and object scope. MySQL production behavior and browser E2E remain unverified. Password reset delivery currently uses the configured SMTP provider and only sends to email-enabled accounts; an SMS provider is not configured for phone-only accounts.
+
+## Phase 5 tracking implementation status
+
+- [x] Device-token authenticated batch ingestion with coordinate, timestamp-skew, speed, heading, payload-size, per-device request-rate, and retry-key checks. Database position and dedupe writes use JDBC batch inserts; processing is asynchronous.
+- [x] GPS schema with a composite key, MySQL monthly `recorded_at` partitions, device/trip/vehicle/driver metadata, SRID 4326 point column, UTC event/receive timestamps, and H2-compatible migration path.
+- [x] Redis latest-position projection with database fallback, post-commit cache/broker updates, organization-scoped STOMP topics, and role/trip authorization.
+- [x] Circular/polygon geofence evaluation with validated shapes and stable-state debounce; ENTER/EXIT alerts; alert acknowledgment, assignment and history; rule-based route deviation, idle, speeding, offline and late-delivery-risk alerts; speed-adjusted remaining-distance ETA; expiring 256-bit public tokens, limited public shipment data and token revocation.
+- [x] Control Tower fleet coordinate view/table, polling and tenant-scoped STOMP updates, geofence creation, alert center, vehicle details, trip-history timeline/replay and public tracking page. GPS simulator supports multiple devices, request batches, configurable interval, route replay, duplicate events, interruption and offered-load mode.
+- [ ] Configurable rule-management UI and external notification delivery; route geometry improvements; map tiles/clustering and editable geofences; driver-name authorization policy; MySQL spatial index/partition-drop and legal-hold policy; sustained-throughput benchmarking; and production DB/Redis/WebSocket verification.
+- [x] `mvn -q -DskipTests compile` and `mvn -q "-Dspring.mail.host=localhost" test` pass (32 backend tests; the system property supplies a mail host missing from the test profile). Tracking rule/geofence integration tests and a live MySQL, Redis, WebSocket, or 1,000-position/second benchmark have not been run. Frontend build is blocked because frontend dependencies, including `openapi-typescript`, are not installed. No backend throughput measurement is available; simulator output is offered client-side throughput only.
 
 ## Phase 0E deliverables
 

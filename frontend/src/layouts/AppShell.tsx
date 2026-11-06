@@ -31,7 +31,7 @@ export function AppShell() {
   const toggleNavigation = () => isMobile ? setMobileOpen((open) => !open) : toggleSidebar();
   const labels: Record<string, string> = {
     app: t('appName'), staff: t('staff'), customer: t('customer'), driver: t('driver'), dashboard: t('dashboard'),
-    orders: t('orders'), shipments: t('shipments'), dispatch: t('dispatch'), warehouse: t('warehouse'),
+    orders: t('orders'), shipments: t('shipments'), dispatch: t('dispatch'), 'control-tower': 'Control tower', warehouse: t('warehouse'),
     users: t('users'), roles: t('roles'), permissions: t('permissionMatrix', 'Permission matrix'), settings: t('settings'),
     profile: t('profile'), sessions: t('sessions', 'Sessions'),
     'master-data': 'Master data', customers: 'Customers', suppliers: 'Suppliers', carriers: 'Carriers', products: 'Products', vehicles: 'Vehicles', drivers: 'Drivers', warehouses: 'Warehouses', regions: 'Regions',
@@ -45,6 +45,7 @@ export function AppShell() {
     { key: '/app/staff/orders', icon: <AppstoreOutlined />, label: t('orders') },
     { key: '/app/staff/shipments', icon: <BoxPlotOutlined />, label: t('shipments') },
     { key: '/app/staff/dispatch', icon: <CarOutlined />, label: t('dispatch') },
+    { key: '/app/staff/control-tower', icon: <DashboardOutlined />, label: 'Control tower' },
     { key: '/app/staff/warehouse', icon: <BoxPlotOutlined />, label: t('warehouse') },
     ...[['customers','Customers'],['suppliers','Suppliers'],['carriers','Carriers'],['products','Products'],['vehicles','Vehicles'],['drivers','Drivers'],['warehouses','Warehouse locations'],['regions','Regions'],['delivery-zones','Delivery zones'],['tariff-zones','Tariff zones'],['business-calendars','Business calendars'],['holidays','Holidays']].map(([type,label]) => ({ key: `/app/staff/master-data/${type}`, icon: <BoxPlotOutlined />, label })),
     { key: '/app/staff/users', icon: <TeamOutlined />, label: t('users'), permission: 'identity.users.read' },

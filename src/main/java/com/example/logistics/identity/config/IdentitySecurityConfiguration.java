@@ -93,7 +93,8 @@ public class IdentitySecurityConfiguration {
     @Bean SecurityFilterChain securityFilterChain(HttpSecurity http, CookieCsrfTokenRepository csrf,
                                                   org.springframework.core.convert.converter.Converter<Jwt, org.springframework.security.authentication.AbstractAuthenticationToken> converter,
                                                   com.example.logistics.identity.infrastructure.DeviceSessionRepository sessions, java.time.Clock clock) throws Exception {
-        http.csrf(config -> config.csrfTokenRepository(csrf))
+        http.csrf(config -> config.csrfTokenRepository(csrf)
+                        .ignoringRequestMatchers("/api/v1/tracking/positions"))
                 .cors(Customizer.withDefaults())
                 .sessionManagement(config -> config.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .formLogin(AbstractHttpConfigurer::disable)
@@ -101,6 +102,9 @@ public class IdentitySecurityConfiguration {
                 .logout(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/csrf", "/api/v1/auth/login", "/api/v1/auth/refresh", "/api/v1/auth/forgot-password", "/api/v1/auth/reset-password").permitAll()
+                        .requestMatchers("/api/v1/tracking/public/**").permitAll()
+                        .requestMatchers("/api/v1/tracking/positions").permitAll()
+                        .requestMatchers("/ws/tracking/**").permitAll()
                         .requestMatchers("/actuator/health/**", "/actuator/info", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated())
@@ -113,7 +117,7 @@ public class IdentitySecurityConfiguration {
         var cors = new CorsConfiguration();
         cors.setAllowedOrigins(List.of(properties.appBaseUrl()));
         cors.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        cors.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-XSRF-TOKEN", "X-Correlation-ID", "If-Match"));
+        cors.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-XSRF-TOKEN", "X-Correlation-ID", "If-Match", "X-Device-Id", "X-Device-Token"));
         cors.setExposedHeaders(List.of("X-Correlation-ID", "Retry-After"));
         cors.setAllowCredentials(true);
         var source = new UrlBasedCorsConfigurationSource();

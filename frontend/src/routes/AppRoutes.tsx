@@ -8,6 +8,7 @@ import { MasterDataPage } from '@/features/master-data/MasterDataPage';
 import { OrdersPage } from '@/features/orders/OrdersPage';
 import { WarehousePage } from '@/features/warehouse/WarehousePage';
 import { DispatchPage } from '@/features/transport/DispatchPage';
+import { ControlTowerPage } from '@/features/transport/ControlTowerPage';
 import {
   CustomerPortalPage, DriverWorkspacePage, PermissionMatrixPage, ProfilePage, PublicTrackingPage,
   RoleManagementPage, SessionsPage, ShipmentTrackingPlaceholder, StaffOverviewPage,
@@ -52,6 +53,7 @@ const router = createBrowserRouter([
             { path: 'staff/shipments', element: <OrdersPage /> },
             { path: 'staff/shipments/:id', element: <OrdersPage /> },
             { path: 'staff/dispatch', element: <DispatchPage /> },
+            { path: 'staff/control-tower', element: <ControlTowerPage /> },
             { path: 'staff/warehouse', element: <WarehousePage /> },
             { path: 'staff/master-data/:resourceType', element: <MasterDataRoute /> },
             { element: <PermissionRoute permission="identity.users.read" />, children: [{ path: 'staff/users', element: <UserManagementPage /> }] },

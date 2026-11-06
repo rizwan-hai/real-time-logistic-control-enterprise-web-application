@@ -21,7 +21,7 @@
 | Shipments | `/shipments`, `/shipments/{id}`, `/shipments/{id}/status` | Role and shipment/customer scope. |
 | Inventory | `/warehouses/{id}/stock`, `/stock-movements`, `/reservations` | Warehouse scope and operation-specific permissions. |
 | Transport | `/trips`, `/drivers`, `/vehicles`, `/assignments` | Transport permissions; driver sees own assigned work. |
-| Tracking | `POST /driver/location-batches`, `GET /shipments/{id}/tracking` | Device/user authenticated; ownership checked; rate and payload bounds. |
+| Tracking | `POST /tracking/positions`, `/tracking/vehicles/latest`, `/tracking/trips/{id}/{eta,history}`, `/tracking/geofences`, `/tracking/alerts`, `/tracking/shipments/{id}/public-link` | Device-token authenticated ingestion; tenant-scoped staff reads/actions; public tracking limited to unexpired high-entropy links. |
 | Exceptions/POD | `/exceptions`, `/shipments/{id}/pod/upload-url`, `/shipments/{id}/pod` | Scoped permission; short-lived signed upload/download URLs. |
 | Transport | `/transport/trips`, `/transport/trips/{id}/dispatch`, `/transport/trips/{id}/commands/{command}` | Trip lifecycle, driver/vehicle/shipment assignment, active-resource conflict checks, odometer, fuel, expense and status history. |
 | Routing | `POST /transport/route-preview` | Heuristic nearest-neighbor plus 2-opt ordering and estimated Haversine distance; response identifies heuristic output and is not globally optimal. |
@@ -62,6 +62,8 @@ All commands return a resource representation or `202 Accepted` only when work i
 | `POST /api/v1/shipments/{id}/commands/dispatch` | trip/assignment reference, version | `200`; `409`, `422 INSUFFICIENT_STOCK` or `POD_REQUIRED` as policy applies |
 | `POST /api/v1/driver/location-batches` | batch ID, device time, points with lat/lon/accuracy/observedAt | `202` accepted count/rejected point indexes; `400`, `413`, `429` |
 | `GET /api/v1/shipments/{id}/tracking` | cursor, from/to | `200` authorized event page; out-of-scope resolves to `404` |
+| `POST /api/v1/tracking/positions` | `X-Device-Id`, `X-Device-Token`, up to 500 event positions | `202` queued batch; device credentials and per-request rate limits apply |
+| `GET /api/v1/tracking/trips/{id}/history` | `from`, `to` (maximum seven days) | `200` bounded replay positions; organization-scoped trip |
 | `POST /api/v1/shipments/{id}/pod/upload-intents` | content length, declared MIME, checksum, capture metadata | `201` short-lived upload intent; `413`, `415`, `403` |
 | `POST /api/v1/pod/{id}/complete` | object key token, observed checksum | `202` scanning/validation; `409` invalid state, `422` checksum/type failure |
 | `POST /api/v1/invoices/{id}/commands/issue` | expected version, approval reference | `200` immutable invoice; `409`, `422` policy/separation-of-duties failure |

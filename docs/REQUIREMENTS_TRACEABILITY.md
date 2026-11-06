@@ -8,7 +8,7 @@ All entries describe planned implementation and planned evidence; none are imple
 | Orders and shipments | orders, shipments | 2 | Lifecycle transition tests, authorization tests, persistence integration tests, API contract tests. |
 | Warehouse management | warehouse, inventory | 3 | Ledger/reservation invariants, concurrent allocation tests, task workflow integration tests. |
 | Transportation management | transport | 4 | Assignment/dispatch lifecycle tests; driver scope tests; API contract checks. |
-| Real-time GPS and control tower | tracking, notifications | 5 | Ingestion validation/dedupe/load tests; websocket authorization tests; stale position and retention tests. |
+| Real-time GPS and control tower | tracking, notifications | 5 | Partial: device-authenticated batch ingestion, async batch writes, dedupe/rate limiting, event-time partition schema, latest-position Redis, scoped STOMP, geofences, ETA, alert rules/actions, public token lifecycle, Control Tower history/replay and simulator. Pending production infrastructure integration, sustained-load benchmark, tile map/clustering, alert notification delivery, and the remaining privacy/retention policies. |
 | Delivery exceptions | exceptions | 5, 8 | Transition/ownership tests, audit evidence tests, notification delivery/retry tests. |
 | Driver management and mobile PWA | transport, frontend PWA | 4, 6 | Responsive workflow Playwright tests; offline queue/retry/conflict tests on supported browsers. |
 | Proof of Delivery | proof, integrations/object storage | 6 | Upload authorization/content/size/checksum tests; signed URL expiry; acceptance and audit tests. |

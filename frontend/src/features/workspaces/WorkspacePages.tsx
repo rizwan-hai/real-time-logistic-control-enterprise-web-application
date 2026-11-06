@@ -10,7 +10,6 @@ import { apiClient } from '@/services/apiClient';
 import { apiPath } from '@/services/apiVersion';
 import { authService } from '@/features/auth/authService';
 import { useAuthStore } from '@/app/authStore';
-import { ActivityTimeline } from '@/shared/components/ActivityTimeline';
 import { DataTable } from '@/shared/components/DataTable';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { ErrorState } from '@/shared/components/ErrorState';
@@ -18,7 +17,6 @@ import { LoadingSkeleton } from '@/shared/components/LoadingSkeleton';
 import { StatusTag } from '@/shared/components/StatusTag';
 import { FormField } from '@/shared/components/FormField';
 import { useConfirmDialog } from '@/shared/components/ConfirmDialog';
-import { formatJalaliDate } from '@/i18n';
 import type {
   CreateRoleRequest, CreateUserRequest, ManagedUserView, PermissionView, PermissionsData, PermissionsResponse,
   ProfileData, RoleView, RolesData, RolesResponse, SessionView,
@@ -81,7 +79,7 @@ export function PublicTrackingPage() {
       <Form.Item label={t('trackingCode')} required><Input value={trackingCode} onChange={(event) => setTrackingCode(event.target.value)} /></Form.Item>
       <Button type="primary" htmlType="submit" disabled={!trackingCode.trim()}>{t('track', 'Track')}</Button>
     </Form>
-    {submitted && <Alert type="info" showIcon message={t('trackingContractPending', 'Tracking lookup will be connected when the public tracking API is available.')} />}
+    {submitted && trackingCode.trim() && <PublicTrackingDetails token={trackingCode.trim()} />}
   </Card></main>;
 }
 
@@ -227,7 +225,15 @@ export function PermissionMatrixPage() {
 
 export function ShipmentTrackingPlaceholder() {
   const { trackingCode = '' } = useParams();
+  return <><PublicTrackingDetails token={trackingCode} /></>;
+}
+
+function PublicTrackingDetails({ token }: { token: string }) {
   const { t } = useTranslation();
-  const formatted = useMemo(() => formatJalaliDate(new Date(), 'fa'), []);
-  return <><PageTitle title={`${t('trackingCode')}: ${trackingCode}`} description={formatted} /><Card><ActivityTimeline items={[]} /><EmptyState /></Card></>;
+  const query = useQuery({ queryKey: ['public-tracking', token], queryFn: async () => (await apiClient.get(apiPath(`tracking/public/${encodeURIComponent(token)}`))).data.data as { shipmentNumber: string; status: string; eta: string | null; location: { latitude: number; longitude: number; recordedAt: string } | null }, enabled: token.length === 64, retry: false });
+  return <><PageTitle title={t('publicTrackingTitle')} description={token.length === 64 ? undefined : t('trackingCode')} />
+    {query.isLoading && <LoadingSkeleton rows={2} />}
+    {query.isError && <Alert type="error" showIcon message="Tracking link is invalid, expired, or temporarily unavailable." />}
+    {query.data && <Card title={`Shipment ${query.data.shipmentNumber}`}><Space direction="vertical"><Typography.Text>Status: <StatusTag status={query.data.status} /></Typography.Text><Typography.Text>ETA: {query.data.eta ? new Date(query.data.eta).toLocaleString() : 'Not available'}</Typography.Text><Typography.Text>Last known location: {query.data.location ? `${query.data.location.latitude}, ${query.data.location.longitude}` : 'Not available'}</Typography.Text></Space></Card>}
+  </>;
 }
