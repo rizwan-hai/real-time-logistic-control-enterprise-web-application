@@ -34,6 +34,7 @@ export function AppShell() {
     orders: t('orders'), shipments: t('shipments'), dispatch: t('dispatch'), warehouse: t('warehouse'),
     users: t('users'), roles: t('roles'), permissions: t('permissionMatrix', 'Permission matrix'), settings: t('settings'),
     profile: t('profile'), sessions: t('sessions', 'Sessions'),
+    'master-data': 'Master data', customers: 'Customers', suppliers: 'Suppliers', carriers: 'Carriers', products: 'Products', vehicles: 'Vehicles', drivers: 'Drivers', warehouses: 'Warehouses', regions: 'Regions',
   };
   const breadcrumbItems = location.pathname.split('/').filter(Boolean).map((segment, index, all) => ({
     title: index === all.length - 1 ? labels[segment] ?? segment : <Link to={`/${all.slice(0, index + 1).join('/')}`}>{labels[segment] ?? segment}</Link>,
@@ -45,6 +46,7 @@ export function AppShell() {
     { key: '/app/staff/shipments', icon: <BoxPlotOutlined />, label: t('shipments') },
     { key: '/app/staff/dispatch', icon: <CarOutlined />, label: t('dispatch') },
     { key: '/app/staff/warehouse', icon: <BoxPlotOutlined />, label: t('warehouse') },
+    ...[['customers','Customers'],['suppliers','Suppliers'],['carriers','Carriers'],['products','Products'],['vehicles','Vehicles'],['drivers','Drivers'],['warehouses','Warehouse locations'],['regions','Regions'],['delivery-zones','Delivery zones'],['tariff-zones','Tariff zones'],['business-calendars','Business calendars'],['holidays','Holidays']].map(([type,label]) => ({ key: `/app/staff/master-data/${type}`, icon: <BoxPlotOutlined />, label })),
     { key: '/app/staff/users', icon: <TeamOutlined />, label: t('users'), permission: 'identity.users.read' },
     { key: '/app/staff/roles', icon: <SafetyCertificateOutlined />, label: t('roles'), permission: 'identity.roles.read' },
     { key: '/app/staff/permissions', icon: <SafetyCertificateOutlined />, label: t('permissionMatrix', 'Permission matrix'), permission: 'identity.permissions.read' },
@@ -52,7 +54,7 @@ export function AppShell() {
     { key: '/app/driver', icon: <CarOutlined />, label: t('driver') },
     { key: '/tracking', icon: <FileSearchOutlined />, label: t('publicTracking') },
   ].filter((item) => {
-    const isStaff = ['/app/staff', '/app/staff/orders', '/app/staff/shipments', '/app/staff/dispatch', '/app/staff/warehouse', '/app/staff/users', '/app/staff/roles', '/app/staff/permissions'].includes(item.key);
+    const isStaff = item.key.startsWith('/app/staff');
     if (isStaff && !['PLATFORM_ADMIN', 'ORGANIZATION_ADMIN', 'OPERATIONS_MANAGER', 'ORDER_CLERK', 'TRANSPORT_DISPATCHER', 'WAREHOUSE_OPERATOR'].some(hasRole)) return false;
     if (item.key === '/app/customer' && !hasRole('CUSTOMER_USER')) return false;
     if (item.key === '/app/driver' && !hasRole('DRIVER')) return false;

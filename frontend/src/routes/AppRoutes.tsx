@@ -1,9 +1,11 @@
-import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom';
+import { createBrowserRouter, Navigate, RouterProvider, useParams } from 'react-router-dom';
 import { ErrorBoundary } from '@/shared/components/ErrorBoundary';
 import { ProtectedRoute, PermissionRoute, RoleRoute } from '@/features/auth/ProtectedRoute';
 import { AccessDeniedPage, ForgotPasswordPage, LoginPage, ResetPasswordPage } from '@/features/auth/AuthPages';
 import { AppShell } from '@/layouts/AppShell';
 import { useAuthStore } from '@/app/authStore';
+import { MasterDataPage } from '@/features/master-data/MasterDataPage';
+import { OrdersPage } from '@/features/orders/OrdersPage';
 import {
   CustomerPortalPage, DriverWorkspacePage, PermissionMatrixPage, ProfilePage, PublicTrackingPage,
   RoleManagementPage, SessionsPage, ShipmentTrackingPlaceholder, StaffOverviewPage,
@@ -11,6 +13,11 @@ import {
 } from '@/features/workspaces/WorkspacePages';
 
 const staffRoles = ['PLATFORM_ADMIN', 'ORGANIZATION_ADMIN', 'OPERATIONS_MANAGER', 'ORDER_CLERK', 'TRANSPORT_DISPATCHER', 'WAREHOUSE_OPERATOR'];
+
+function MasterDataRoute() {
+  const { resourceType = '' } = useParams();
+  return <MasterDataPage resourceType={resourceType} />;
+}
 
 function WorkspaceHomeRedirect() {
   const hasRole = useAuthStore((state) => state.hasRole);
@@ -39,10 +46,12 @@ const router = createBrowserRouter([
           element: <RoleRoute roles={staffRoles} />,
           children: [
             { path: 'staff', element: <StaffOverviewPage /> },
-            { path: 'staff/orders', element: <WorkspaceModulePage title="Orders" /> },
-            { path: 'staff/shipments', element: <WorkspaceModulePage title="Shipments" /> },
+            { path: 'staff/orders', element: <OrdersPage /> },
+            { path: 'staff/shipments', element: <OrdersPage /> },
+            { path: 'staff/shipments/:id', element: <OrdersPage /> },
             { path: 'staff/dispatch', element: <WorkspaceModulePage title="Dispatch" /> },
             { path: 'staff/warehouse', element: <WorkspaceModulePage title="Warehouse" /> },
+            { path: 'staff/master-data/:resourceType', element: <MasterDataRoute /> },
             { element: <PermissionRoute permission="identity.users.read" />, children: [{ path: 'staff/users', element: <UserManagementPage /> }] },
             { element: <PermissionRoute permission="identity.roles.read" />, children: [{ path: 'staff/roles', element: <RoleManagementPage /> }] },
             { element: <PermissionRoute permission="identity.permissions.read" />, children: [{ path: 'staff/permissions', element: <PermissionMatrixPage /> }] },
