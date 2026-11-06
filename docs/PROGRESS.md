@@ -8,6 +8,7 @@ Last reviewed: 2026-11-06
 - Phase 0B: **Foundation implemented; automated tests pass.**
 - Phase 0C: **Identity backend and initial React identity UI implemented; core backend tests pass.**
 - Phase 0D: **Frontend foundation implemented; build, lint, unit tests, and browser tests are pending because npm dependency installation is blocked by repeated registry timeouts.**
+- Phase 0E: **Deployment foundation files created; Docker runtime verification is blocked because Docker CLI is unavailable in this environment.**
 - Phases 1 through 11: **Not started.**
 - Application implementation: **Backend foundation, identity/authentication, and reusable frontend shell.** Business-domain workflows remain unimplemented.
 - Source validation: **Pending** because `.github/copilot-instructions.md` and `docs/SPEC.md` are absent. Foundation follows the available approved design set and should be reconciled when those sources are restored.
@@ -47,6 +48,19 @@ Last reviewed: 2026-11-06
 - [ ] Full SPEC/security architecture validation. `docs/SPEC.md` and `.github/copilot-instructions.md` are absent from the workspace, so requirements alignment remains provisional.
 
 Latest backend evidence: `mvn test` passes all 22 tests, including identity schema validation, authentication integration, active-session revocation, MFA challenge handling, and object scope. MySQL production behavior and browser E2E remain unverified. Password reset delivery currently uses the configured SMTP provider and only sends to email-enabled accounts; an SMS provider is not configured for phone-only accounts.
+
+## Phase 0E deliverables
+
+- [x] Backend Java 21 container build and frontend development/production container definitions.
+- [x] Compose stack for Nginx/Vite, backend, MySQL, Redis, MinIO-compatible Silo, MailHog, Prometheus, and Grafana; health checks, persistent volumes, service networks, startup conditions, and dev/production profiles.
+- [x] Nginx reverse proxy, Prometheus scrape configuration, Grafana datasource provisioning, and local environment template.
+- [x] GitHub Actions CI, dependency review, CodeQL, npm audit, and container build workflows without embedded credentials.
+- [x] Developer setup, environment, database initialization, and backup/restore documentation and PowerShell scripts.
+- [ ] Compose startup, connectivity, reverse proxy, and frontend access checks. Docker is not installed/available in this environment.
+- [ ] Frontend workflow build and lint/test. npm dependency install/lock generation cannot complete offline because the package cache lacks `@types/node` metadata; CI performs online installation.
+- [ ] Local backend verification for this phase. `mvn test` failed during test compilation because Maven could not resolve existing identity/main packages from the current `target` output; `mvn clean test` also could not remove the existing `target` directory (`Access is denied`). No application source was changed in this phase.
+
+The compose file defaults to published Silo, a community-maintained MinIO-compatible continuation, because the upstream MinIO container distribution was archived/withdrawn. Production deployment must use production secrets and a deliberate TLS/storage/backup configuration. The CI container job still needs a real API schema to build contract types and should be tightened when CI execution is available.
 
 ## Phase 0D deliverables
 

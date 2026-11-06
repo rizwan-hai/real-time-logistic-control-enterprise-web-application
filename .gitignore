@@ -8,6 +8,7 @@
 /frontend/dist/
 /frontend/playwright-report/
 /frontend/test-results/
+/backups/
 .env
 .env.*
 !.env.example

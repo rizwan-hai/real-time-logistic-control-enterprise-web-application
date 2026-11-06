@@ -4,6 +4,6 @@ const sourcePath = decodeURIComponent(new URL('./src', import.meta.url).pathname
 export default defineConfig({
   plugins: [react()],
   resolve: { alias: { '@': sourcePath } },
-  server: { port: 5173, proxy: { '/api': { target: 'http://localhost:8080', changeOrigin: true } } },
+  server: { port: 5173, proxy: { '/api': { target: process.env.VITE_API_PROXY_TARGET ?? 'http://localhost:8080', changeOrigin: true } } },
   test: { environment: 'jsdom', setupFiles: ['./src/test/setup.ts'], css: true },
 });

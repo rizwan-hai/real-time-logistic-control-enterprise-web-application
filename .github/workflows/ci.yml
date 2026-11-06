@@ -1,0 +1,92 @@
+name: CI
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - run: mvn -B verify
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+        working-directory: frontend
+      - run: npm run lint
+        working-directory: frontend
+      - run: npm test
+        working-directory: frontend
+      - name: Prepare contract schema for compilation
+        run: |
+          mkdir -p ops
+          printf '{"openapi":"3.0.3","info":{"title":"Logistics API","version":"v1"},"paths":{}}' > ops/openapi-ci.json
+      - name: Build frontend
+        env:
+          API_SCHEMA_FILE: ../ops/openapi-ci.json
+        run: npm run build
+        working-directory: frontend
+
+  dependency-review:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+
+  security:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: java,javascript-typescript
+      - uses: github/codeql-action/analyze@v3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+        working-directory: frontend
+      - run: npm audit --audit-level=high
+        working-directory: frontend
+
+  containers:
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - run: mvn -B -DskipTests package
+      - name: Create OpenAPI schema for frontend image
+        run: |
+          printf '{"openapi":"3.0.3","info":{"title":"Logistics API","version":"v1"},"paths":{}}' > frontend/openapi-ci.json
+      - name: Build application images
+        run: |
+          docker build -t logistics-backend:${GITHUB_SHA} -f Dockerfile .
+          docker build -t logistics-frontend:${GITHUB_SHA} --build-arg API_SCHEMA_URL=http://localhost:8080/v3/api-docs --build-arg API_SCHEMA_FILE=/app/openapi-ci.json -f frontend/Dockerfile frontend

@@ -1,14 +1,39 @@
-# Logistics Control Backend
+# Logistics Control
 
-Java 21 / Spring Boot 3 modular monolith with identity, authentication, and authorization foundation. Domain feature packages own their API, application, domain, and infrastructure layers.
+Spring Boot 3 / Java 21 backend and React 18 / TypeScript frontend for a logistics control platform. The repository uses a modular monolith, MySQL as the system of record, Redis, and private S3-compatible object storage.
 
-## Run locally
+## Start locally
 
-1. Start infrastructure: `docker compose up -d mysql redis minio mailhog`.
-2. Start the API: `mvn spring-boot:run` (default profile: `dev`). The dev-only seeded account defaults to `admin@logistics.local` / `LocalAdmin123!ChangeMe`; set `DEV_ADMIN_EMAIL` and `DEV_ADMIN_PASSWORD` before starting to override it.
-3. Start the identity UI with `cd frontend`, `npm install`, `npm run dev`. Open `http://localhost:5173`; Vite proxies `/api` calls to the API on port `8080`. Set `VITE_API_BASE` to the API origin for a production UI build. MailHog captures password reset messages at `http://localhost:8025`.
-4. Swagger is at `http://localhost:8080/swagger-ui.html`; health/readiness are on management port `9091`.
+Requirements: Docker Desktop with Compose v2.24+, Git, and (for host frontend commands) Node.js 22+. Docker Compose runs MySQL, Redis, Silo (MinIO-compatible object storage), MailHog, Prometheus, Grafana, and the backend. The `dev` profile adds Vite.
 
-Set `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `REDIS_HOST`, `REDIS_PORT`, `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, and `MINIO_BUCKET` to override local defaults. Select `staging` or `prod` with `SPRING_PROFILES_ACTIVE`; those profiles require credentials through environment/secret injection.
+```powershell
+Copy-Item .env.example .env
+# Edit .env and replace every local placeholder password/secret.
+docker compose --profile dev up --build -d
+```
 
-`mvn test` runs context, identity migration, API/CSRF, authentication, password reset, RBAC data-scope, and TOTP checks. The tests use H2 and do not require running MySQL, Redis, MinIO, or Docker. Run UI checks with `cd frontend`, `npm install`, `npm run build`, and `npm run test:e2e`. Production uses MySQL 8, Redis, SMTP, and MinIO-compatible object storage; `ddl-auto` is always `validate` and schema changes use Flyway.
+Open the frontend at <http://localhost:5173>, API at <http://localhost:8080>, Swagger at <http://localhost:8080/swagger-ui/index.html>, MailHog at <http://localhost:8025>, MinIO console at <http://localhost:9001>, Prometheus at <http://localhost:9090>, and Grafana at <http://localhost:3000>. The local development admin credentials are controlled by `DEV_ADMIN_EMAIL` and `DEV_ADMIN_PASSWORD` in `.env`.
+
+Check service state with `docker compose ps`; follow application logs with `docker compose logs -f backend frontend-dev`. Flyway applies schema migrations automatically on backend startup.
+
+To stop containers while preserving data, run `docker compose down`. To erase all local data volumes, run `docker compose down -v`.
+
+## Production-style frontend preview
+
+Build and run the Nginx frontend profile after the backend is healthy:
+
+```powershell
+docker compose --profile production up --build -d
+```
+
+It serves the frontend at <http://localhost/> and proxies API, OpenAPI, and Swagger requests to the backend. This Compose configuration is a deployment foundation; production secrets, TLS termination, external managed services, backups, and image publishing must be configured for the target environment.
+
+## Development and operations guides
+
+- [Development setup](docs/DEVELOPMENT.md)
+- [Environment variables](docs/ENVIRONMENT.md)
+- [Database initialization](docs/DATABASE.md)
+- [Backup and restore](docs/BACKUP_RESTORE.md)
+- [Architecture and implementation status](docs/PROGRESS.md)
+
+CI workflows are in `.github/workflows/`. They run Maven verification, frontend lint/tests/build, dependency review, CodeQL, npm audit, and container image builds. No credentials are stored in workflow files.
