@@ -7,6 +7,7 @@ import { useAuthStore } from '@/app/authStore';
 import { MasterDataPage } from '@/features/master-data/MasterDataPage';
 import { OrdersPage } from '@/features/orders/OrdersPage';
 import { WarehousePage } from '@/features/warehouse/WarehousePage';
+import { DispatchPage } from '@/features/transport/DispatchPage';
 import {
   CustomerPortalPage, DriverWorkspacePage, PermissionMatrixPage, ProfilePage, PublicTrackingPage,
   RoleManagementPage, SessionsPage, ShipmentTrackingPlaceholder, StaffOverviewPage,
@@ -50,7 +51,7 @@ const router = createBrowserRouter([
             { path: 'staff/orders', element: <OrdersPage /> },
             { path: 'staff/shipments', element: <OrdersPage /> },
             { path: 'staff/shipments/:id', element: <OrdersPage /> },
-            { path: 'staff/dispatch', element: <WorkspaceModulePage title="Dispatch" /> },
+            { path: 'staff/dispatch', element: <DispatchPage /> },
             { path: 'staff/warehouse', element: <WarehousePage /> },
             { path: 'staff/master-data/:resourceType', element: <MasterDataRoute /> },
             { element: <PermissionRoute permission="identity.users.read" />, children: [{ path: 'staff/users', element: <UserManagementPage /> }] },

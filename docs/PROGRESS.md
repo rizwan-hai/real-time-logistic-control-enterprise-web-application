@@ -9,9 +9,11 @@ Last reviewed: 2026-11-06
 - Phase 0C: **Identity backend and initial React identity UI implemented; core backend tests pass.**
 - Phase 0D: **Frontend foundation implemented; build, lint, unit tests, and browser tests are pending because npm dependency installation is blocked by repeated registry timeouts.**
 - Phase 0E: **Deployment foundation files created; Docker runtime verification is blocked because Docker CLI is unavailable in this environment.**
-- Phases 1, 2, and 4 through 11: **Not started.**
+- Phase 4: **Initial TMS vertical slice implemented; full operational validation and browser verification remain incomplete.**
+- Phases 1, 2, and 5 through 11: **Not started.**
 - Phase 3: **WMS implementation started; incomplete.**
 - Application implementation: **Backend foundation, identity/authentication, initial order/shipment workflows, and partial WMS vertical slice.** Other business-domain workflows remain unimplemented.
+- Phase 4 includes trip lifecycle/assignment APIs and history, shipment trip linking and reassignment, trip expenses/fuel logs, carrier tender invite/quote/award, routing interfaces with a Haversine estimate adapter, a nearest-neighbor/2-opt heuristic, a pure operational validation policy, and a dispatch board with dnd-kit shipment assignment. Vehicle/load/license/hour checks are available through an explicit validation endpoint and currently rely on caller-supplied snapshots. OSRM/Google adapters, map visualization, stop reordering, automatic route-constraint integration, and full tender/delivery UX are not yet implemented.
 - Source validation: **Pending** because `.github/copilot-instructions.md` and `docs/SPEC.md` are absent. Foundation follows the available approved design set and should be reconciled when those sources are restored.
 
 ## Phase 3 WMS implementation status

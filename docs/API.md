@@ -23,6 +23,10 @@
 | Transport | `/trips`, `/drivers`, `/vehicles`, `/assignments` | Transport permissions; driver sees own assigned work. |
 | Tracking | `POST /driver/location-batches`, `GET /shipments/{id}/tracking` | Device/user authenticated; ownership checked; rate and payload bounds. |
 | Exceptions/POD | `/exceptions`, `/shipments/{id}/pod/upload-url`, `/shipments/{id}/pod` | Scoped permission; short-lived signed upload/download URLs. |
+| Transport | `/transport/trips`, `/transport/trips/{id}/dispatch`, `/transport/trips/{id}/commands/{command}` | Trip lifecycle, driver/vehicle/shipment assignment, active-resource conflict checks, odometer, fuel, expense and status history. |
+| Routing | `POST /transport/route-preview` | Heuristic nearest-neighbor plus 2-opt ordering and estimated Haversine distance; response identifies heuristic output and is not globally optimal. |
+| Operational validation | `POST /transport/validate` | Checks supplied load, vehicle, driver, availability, license, driving-hour, and working-hour snapshots. |
+| Carrier tenders | `/transport/tenders`, `/transport/tenders/{id}/quote`, `/transport/tenders/{id}/award` | Invite carriers, record quotes, and award one quoted tender per shipment. |
 | Billing | `/invoices`, `/invoices/{id}`, `/invoices/{id}/issue` | Finance permissions; issued documents immutable. |
 | Notifications | `/notifications`, `/notification-preferences` | Actor scoped. |
 

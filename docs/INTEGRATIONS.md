@@ -2,6 +2,8 @@
 
 **Status:** Proposed integration boundaries. No external providers are configured.
 
+Routing adapters are implemented behind `RoutingProvider`. Select `haversine` (default), `osrm`, or `google-directions` with `TRANSPORT_ROUTING_PROVIDER`; configure `OSRM_BASE_URL` or `GOOGLE_DIRECTIONS_API_KEY` for the corresponding service. Haversine produces straight-line estimates. Nearest-neighbor plus 2-opt remains heuristic, including when a road-routing provider supplies distances.
+
 | Integration | Direction/data | Design and controls | Open item |
 |---|---|---|---|
 | Maps/geocoding | Address normalization, route display, tiles | Provider adapter; cache only per license; provide attribution; never make provider outage block order persistence. Leaflet is renderer, not map data source. | Choose provider, licensing, offline needs, routing provider and budget. |
@@ -14,3 +16,6 @@
 | Tax/payment (optional) | Tax calculations and payment reconciliation | Port/adapter, idempotent provider references, signed webhooks, immutable financial ledger, reconciliation. | Jurisdictions/providers and whether in scope. |
 
 External calls must have timeouts, bounded retries with jitter, circuit-breaking where appropriate, correlation IDs, and explicit failure handling. Webhooks require signature verification, replay protection, payload size limits, and audit trails. Credentials rotate and are never committed. Define a provider-independent contract and sandbox fixtures before enabling each adapter.
+# Routing providers
+
+Set `TRANSPORT_ROUTING_PROVIDER` to `haversine` (default), `osrm`, or `google-directions`. Configure `OSRM_BASE_URL` for an OSRM-compatible route service or `GOOGLE_DIRECTIONS_API_KEY` for Google Directions. Haversine returns straight-line estimates; OSRM and Google are live road routes. Route stop ordering remains heuristic even with a road-routing provider.

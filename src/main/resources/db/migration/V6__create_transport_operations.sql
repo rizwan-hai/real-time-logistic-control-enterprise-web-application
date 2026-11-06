@@ -1,0 +1,18 @@
+CREATE TABLE trip (
+ id CHAR(36) NOT NULL PRIMARY KEY, organization_id CHAR(36) NOT NULL, trip_number VARCHAR(40) NOT NULL,
+ status VARCHAR(20) NOT NULL, driver_id CHAR(36) NULL, vehicle_id CHAR(36) NULL,
+ odometer_start DECIMAL(12,2) NULL, odometer_end DECIMAL(12,2) NULL,
+ planned_start TIMESTAMP(6) NULL, started_at TIMESTAMP(6) NULL, completed_at TIMESTAMP(6) NULL,
+ created_by CHAR(36) NULL, created_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6), updated_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6), version BIGINT NOT NULL DEFAULT 0,
+ UNIQUE KEY uk_trip_number(organization_id,trip_number), INDEX ix_trip_status(organization_id,status), INDEX ix_trip_driver(driver_id,status), INDEX ix_trip_vehicle(vehicle_id,status)
+);
+CREATE TABLE trip_shipment (trip_id CHAR(36) NOT NULL, shipment_id CHAR(36) NOT NULL, sequence_no INT NOT NULL,
+ PRIMARY KEY(trip_id,shipment_id), UNIQUE KEY uk_trip_shipment_seq(trip_id,sequence_no), FOREIGN KEY(trip_id) REFERENCES trip(id), FOREIGN KEY(shipment_id) REFERENCES shipment(id));
+CREATE TABLE trip_stop (id CHAR(36) NOT NULL PRIMARY KEY, trip_id CHAR(36) NOT NULL, sequence_no INT NOT NULL, shipment_stop_id CHAR(36) NULL,
+ stop_type VARCHAR(20) NOT NULL, address_json TEXT NOT NULL, latitude DECIMAL(10,7) NULL, longitude DECIMAL(10,7) NULL, window_start TIMESTAMP(6) NULL, window_end TIMESTAMP(6) NULL, status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+ UNIQUE KEY uk_trip_stop_seq(trip_id,sequence_no), FOREIGN KEY(trip_id) REFERENCES trip(id), FOREIGN KEY(shipment_stop_id) REFERENCES shipment_stop(id));
+CREATE TABLE trip_status_history (id CHAR(36) NOT NULL PRIMARY KEY, trip_id CHAR(36) NOT NULL, from_status VARCHAR(20) NULL, to_status VARCHAR(20) NOT NULL, actor_id CHAR(36) NULL, reason VARCHAR(1000) NOT NULL, occurred_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6), FOREIGN KEY(trip_id) REFERENCES trip(id), INDEX ix_trip_history(trip_id,occurred_at));
+CREATE TABLE trip_dispatch_history (id CHAR(36) NOT NULL PRIMARY KEY, trip_id CHAR(36) NOT NULL, shipment_id CHAR(36) NULL, driver_id CHAR(36) NULL, vehicle_id CHAR(36) NULL, action VARCHAR(30) NOT NULL, actor_id CHAR(36) NULL, occurred_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6), FOREIGN KEY(trip_id) REFERENCES trip(id), INDEX ix_dispatch_history(trip_id,occurred_at));
+CREATE TABLE trip_expense (id CHAR(36) NOT NULL PRIMARY KEY, trip_id CHAR(36) NOT NULL, category VARCHAR(40) NOT NULL, amount DECIMAL(18,2) NOT NULL, currency CHAR(3) NOT NULL, description VARCHAR(500) NOT NULL, incurred_at TIMESTAMP(6) NOT NULL, created_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6), FOREIGN KEY(trip_id) REFERENCES trip(id), CHECK(amount >= 0));
+CREATE TABLE fuel_log (id CHAR(36) NOT NULL PRIMARY KEY, trip_id CHAR(36) NOT NULL, quantity DECIMAL(12,3) NOT NULL, unit VARCHAR(10) NOT NULL, unit_price DECIMAL(18,4) NOT NULL, currency CHAR(3) NOT NULL, odometer DECIMAL(12,2) NOT NULL, fueled_at TIMESTAMP(6) NOT NULL, vendor VARCHAR(200) NOT NULL, FOREIGN KEY(trip_id) REFERENCES trip(id), CHECK(quantity > 0), CHECK(unit_price >= 0));
+CREATE TABLE carrier_tender (id CHAR(36) NOT NULL PRIMARY KEY, organization_id CHAR(36) NOT NULL, shipment_id CHAR(36) NOT NULL, carrier_id CHAR(36) NOT NULL, status VARCHAR(20) NOT NULL, invited_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6), quoted_cost DECIMAL(18,2) NULL, currency CHAR(3) NULL, quote_note VARCHAR(1000) NULL, quoted_at TIMESTAMP(6) NULL, awarded_at TIMESTAMP(6) NULL, delivery_status VARCHAR(30) NOT NULL DEFAULT 'NOT_STARTED', FOREIGN KEY(shipment_id) REFERENCES shipment(id), INDEX ix_tender_shipment(organization_id,shipment_id,status));
