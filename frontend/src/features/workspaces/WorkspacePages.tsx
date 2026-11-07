@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert, Button, Card, Checkbox, Col, Form, Input, Row, Select, Space, Statistic, Typography } from 'antd';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -63,8 +63,53 @@ export function CustomerPortalPage() {
 
 export function DriverWorkspacePage() {
   const { t } = useTranslation();
-  return <><PageTitle title={t('driver')} description={t('driverDescription', 'Assigned trips, deliveries, and proof of delivery.')} />
-    <Card><EmptyState title={t('noAssignments', 'No assigned trips')} description={t('noAssignmentsDescription', 'New assignments will appear here.')} /></Card>
+  const [trip, setTrip] = useState<any>(null);
+  const [pending, setPending] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [gps, setGps] = useState<{ lat: number; lng: number } | null>(null);
+  const [offlineQueue, setOfflineQueue] = useState<number>(0);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('driver-trip');
+    if (saved) setTrip(JSON.parse(saved));
+    setOfflineQueue(Number(localStorage.getItem('driver-offline-queue-count') ?? '0'));
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition((position) => setGps({ lat: position.coords.latitude, lng: position.coords.longitude }), () => undefined, { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 });
+    }
+  }, []);
+
+  async function markState(status: string) {
+    const payload = { status, timestamp: new Date().toISOString(), gps, source: 'driver-pwa' };
+    setPending(true);
+    try {
+      const queue = Number(localStorage.getItem('driver-offline-queue-count') ?? '0');
+      if (navigator.onLine) {
+        setOfflineQueue(0);
+        localStorage.setItem('driver-offline-queue-count', '0');
+      } else {
+        localStorage.setItem('driver-offline-queue-count', String(queue + 1));
+        setOfflineQueue(queue + 1);
+      }
+      localStorage.setItem('driver-trip', JSON.stringify({ ...trip, status, lastUpdate: payload.timestamp }));
+      setTrip((current: any) => ({ ...current, status, lastUpdate: payload.timestamp }));
+    } finally { setPending(false); }
+  }
+
+  return <>
+    <PageTitle title={t('driver')} description={t('driverDescription', 'Assigned trips, deliveries, and proof of delivery.')} />
+    <Row gutter={[16, 16]}>
+      <Col xs={24} md={8}><Card title="Trip status"><Typography.Text>Assigned trip: {trip?.tripNumber ?? 'TRP-1001'}</Typography.Text><br /><Typography.Text>Status: {trip?.status ?? 'ASSIGNED'}</Typography.Text><br /><Typography.Text>GPS: {gps ? `${gps.lat.toFixed(5)}, ${gps.lng.toFixed(5)}` : 'Waiting for location'}</Typography.Text></Card></Col>
+      <Col xs={24} md={8}><Card title="Delivery actions"><Space direction="vertical"><Button onClick={() => markState('ARRIVED')} loading={pending}>Start / arrive</Button><Button onClick={() => markState('DELIVERED')} loading={pending}>Complete delivery</Button><Button onClick={() => setOtp(String(Math.floor(100000 + Math.random() * 900000)))}>Generate OTP</Button></Space></Card></Col>
+      <Col xs={24} md={8}><Card title="Offline queue"><Statistic title="Sync queue" value={offlineQueue} /><Typography.Text>OTP: {otp || 'Not generated'}</Typography.Text></Card></Col>
+    </Row>
+    <Card className="section-card" title="Proof of delivery">
+      <Space direction="vertical" style={{ width: '100%' }}>
+        <Input placeholder="Recipient name" />
+        <Input.TextArea placeholder="Delivery notes" rows={3} />
+        <Input placeholder="OTP confirmation" value={otp} onChange={(e) => setOtp(e.target.value)} />
+        <Button type="primary">Capture proof</Button>
+      </Space>
+    </Card>
   </>;
 }
 
