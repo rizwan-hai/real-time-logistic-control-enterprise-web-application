@@ -10,6 +10,7 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.security.access.AccessDeniedException;
+import com.example.logistics.notifications.NotificationSubscriptionAuthorization;
 import com.example.logistics.identity.config.IdentityProperties;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -34,6 +35,8 @@ public class TrackingWebSocketConfiguration implements WebSocketMessageBrokerCon
             if(a!=null&&a.getCommand()==StompCommand.CONNECT){String auth=a.getFirstNativeHeader("Authorization");if(auth==null||!auth.startsWith("Bearer "))throw new AccessDeniedException("Bearer token is required for tracking websocket");try{var token=jwtDecoder.decode(auth.substring(7));if(!"access".equals(token.getClaimAsString("purpose")))throw new AccessDeniedException("Access token required");a.setUser(converter.convert(token));}catch(RuntimeException ex){throw new AccessDeniedException("Invalid tracking websocket token",ex);}}
             if(a!=null&&a.getCommand()==StompCommand.SUBSCRIBE){String d=a.getDestination();var user=a.getUser();
                 if(!(user instanceof JwtAuthenticationToken jwt)||d==null)throw new AccessDeniedException("Tracking subscription is not authorized");
+                String subject=jwt.getToken().getSubject();
+                if(NotificationSubscriptionAuthorization.allows(subject,d))return message;
                 boolean allowed=jwt.getAuthorities().stream().anyMatch(x->x.getAuthority().matches("ROLE_(PLATFORM_ADMIN|ORGANIZATION_ADMIN|OPERATIONS_MANAGER|TRANSPORT_DISPATCHER)"));
                 if(!allowed)throw new AccessDeniedException("Tracking permission is required");
                 String org=jwt.getToken().getClaimAsString("organizationId");

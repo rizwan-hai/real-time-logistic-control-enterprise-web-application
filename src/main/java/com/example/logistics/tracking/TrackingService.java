@@ -91,7 +91,7 @@ public class TrackingService {
             String latest;
             try{latest=json.writeValueAsString(latestData);}catch(Exception ex){throw new IllegalStateException("Unable to serialize latest vehicle position",ex);}
             var event=new LinkedHashMap<String,Object>();event.put("vehicleId",device.vehicleId());event.put("tripId",p.tripId());event.put("latitude",p.latitude());event.put("longitude",p.longitude());event.put("speedKph",p.speedKph());event.put("recordedAt",p.recordedAt());event.put("status",status);
-            if(p.tripId()!=null)event.put("eta",eta(p.tripId(),p.latitude(),p.longitude(),p.speedKph()==null?0:p.speedKph()));
+            if(p.tripId()!=null){Map<String,Object> eta=eta(p.tripId(),p.latitude(),p.longitude(),p.speedKph()==null?0:p.speedKph());event.put("eta",eta);recordEtaChange(device.organizationId(),p.tripId(),(String)eta.get("estimatedArrival"));}
             projections.add(new Projection(device.vehicleId(),device.organizationId(),p.tripId(),latest,event));evaluateGeofences(device,p,received);evaluateAlertRules(device,p);
         }
         db.update("UPDATE tracking_device SET last_seen_at=? WHERE id=?",received,device.id());
@@ -116,7 +116,7 @@ public class TrackingService {
             else if(candidateSince!=null&&Duration.between(candidateSince,received).getSeconds()>=(int)f[4]){db.update("UPDATE geofence_state SET inside=?,changed_at=?,candidate_inside=NULL,candidate_since=NULL WHERE vehicle_id=? AND geofence_id=?",inside,received,device.vehicleId(),id);geofenceAlert(device,p,name,inside?"ENTER":"EXIT");}
         }
     }
-    private void geofenceAlert(Device d,Position p,String name,String transition){String id=UUID.randomUUID().toString();String message="Vehicle crossed geofence '"+name+"' ("+transition+")";db.update("INSERT INTO tracking_alert(id,organization_id,vehicle_id,trip_id,rule,severity,message) VALUES(?,?,?,?,?,?,?)",id,d.organizationId(),d.vehicleId(),p.tripId(),"GEOFENCE_BREACH","WARNING",message);TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization(){@Override public void afterCommit(){messages.convertAndSend("/topic/tracking/alerts/"+d.organizationId(),Map.of("id",id,"vehicleId",d.vehicleId(),"rule","GEOFENCE_BREACH","severity","WARNING","message",message));}});}
+    private void geofenceAlert(Device d,Position p,String name,String transition){String id=UUID.randomUUID().toString();String message="Vehicle crossed geofence '"+name+"' ("+transition+")";db.update("INSERT INTO tracking_alert(id,organization_id,vehicle_id,trip_id,rule,severity,message) VALUES(?,?,?,?,?,?,?)",id,d.organizationId(),d.vehicleId(),p.tripId(),"GEOFENCE_BREACH","WARNING",message);writeNotificationEvent(d.organizationId(),d.vehicleId(),"GeofenceBreach",Map.of("vehicleId",d.vehicleId(),"rule","GEOFENCE_BREACH","transition",transition));TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization(){@Override public void afterCommit(){messages.convertAndSend("/topic/tracking/alerts/"+d.organizationId(),Map.of("id",id,"vehicleId",d.vehicleId(),"rule","GEOFENCE_BREACH","severity","WARNING","message",message));}});}
     private void evaluateAlertRules(Device device,Position position){
         if(position.speedKph()!=null&&position.speedKph()>alertProperties.speedingKph())
             createAlert(device,position.tripId(),"SPEEDING",position.speedKph()>alertProperties.speedingKph()*1.25?"CRITICAL":"WARNING","Vehicle speed exceeded the configured limit");
@@ -160,9 +160,47 @@ public class TrackingService {
         String id=UUID.randomUUID().toString();
         db.update("INSERT INTO tracking_alert(id,organization_id,vehicle_id,trip_id,rule,severity,message) VALUES(?,?,?,?,?,?,?)",
                 id,device.organizationId(),device.vehicleId(),tripId,rule,severity,message);
+        String eventType = switch (rule) {
+            case "IDLE_VEHICLE" -> "VehicleIdle";
+            case "LATE_DELIVERY_RISK" -> "DeliveryDelay";
+            case "GEOFENCE_BREACH" -> "GeofenceBreach";
+            default -> "GpsAlert";
+        };
+        Map<String, Object> eventPayload = new LinkedHashMap<>();
+        eventPayload.put("vehicleId", device.vehicleId());
+        eventPayload.put("driverId", device.driverId());
+        eventPayload.put("rule", rule);
+        eventPayload.put("severity", severity);
+        writeNotificationEvent(device.organizationId(), device.vehicleId(), eventType, eventPayload);
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization(){@Override public void afterCommit(){
             messages.convertAndSend("/topic/tracking/alerts/"+device.organizationId(),Map.of("id",id,"vehicleId",device.vehicleId(),"tripId",tripId==null?"":tripId,"rule",rule,"severity",severity,"status","OPEN","message",message));
         }});
+    }
+    private void writeNotificationEvent(String organizationId, String vehicleId, String eventType, Object payload) {
+        writeNotificationEvent(organizationId, vehicleId, "Vehicle", eventType, payload);
+    }
+    private void writeNotificationEvent(String organizationId, String aggregateId, String aggregateType, String eventType, Object payload) {
+        try {
+            db.update("INSERT INTO outbox_event(id,organization_id,event_type,schema_version,aggregate_type,aggregate_id,payload) VALUES(?,?,?,1,?,?,?)",
+                    UUID.randomUUID().toString(), organizationId, eventType, aggregateType, aggregateId, json.writeValueAsString(payload));
+        } catch (com.fasterxml.jackson.core.JsonProcessingException ex) {
+            throw new IllegalStateException("Unable to serialize tracking notification event", ex);
+        }
+    }
+    private void recordEtaChange(String organizationId, String tripId, String arrivalValue) {
+        Instant arrival = Instant.parse(arrivalValue);
+        var previous = db.query("SELECT estimated_arrival FROM notification_eta_snapshot WHERE trip_id=?",
+                (rs, row) -> rs.getTimestamp(1).toInstant(), tripId);
+        if (!previous.isEmpty() && Duration.between(previous.get(0), arrival).abs().toMinutes() < 5) return;
+        if (previous.isEmpty()) {
+            db.update("INSERT INTO notification_eta_snapshot(trip_id,organization_id,estimated_arrival) VALUES(?,?,?)",
+                    tripId, organizationId, Timestamp.from(arrival));
+        } else {
+            db.update("UPDATE notification_eta_snapshot SET estimated_arrival=?,updated_at=CURRENT_TIMESTAMP(6) WHERE trip_id=? AND organization_id=?",
+                    Timestamp.from(arrival), tripId, organizationId);
+        }
+        writeNotificationEvent(organizationId, tripId, "Trip", "EtaChanged",
+                Map.of("tripId", tripId, "estimatedArrival", arrivalValue));
     }
     private void resolveOfflineAlert(Device device,Instant now){
         var alerts=db.query("SELECT id FROM tracking_alert WHERE organization_id=? AND vehicle_id=? AND rule='DEVICE_OFFLINE' AND status IN ('OPEN','ACKNOWLEDGED')",

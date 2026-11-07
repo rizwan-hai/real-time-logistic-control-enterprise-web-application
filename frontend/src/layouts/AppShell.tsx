@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Avatar, Badge, Breadcrumb, Button, Dropdown, Input, Layout, Menu, Select, Space, Switch, Typography, Grid } from 'antd';
+import { Avatar, Breadcrumb, Button, Dropdown, Input, Layout, Menu, Select, Space, Switch, Typography, Grid } from 'antd';
 import {
-  AppstoreOutlined, BellOutlined, BoxPlotOutlined, CarOutlined, DashboardOutlined, FileSearchOutlined,
+  AppstoreOutlined, BoxPlotOutlined, CarOutlined, DashboardOutlined, FileSearchOutlined,
   MenuFoldOutlined, MenuUnfoldOutlined, MoonOutlined, SearchOutlined, SettingOutlined, SunOutlined,
   TeamOutlined, UserOutlined, LogoutOutlined, SafetyCertificateOutlined,
 } from '@ant-design/icons';
@@ -11,6 +11,7 @@ import { useAuthStore } from '@/app/authStore';
 import { usePreferencesStore } from '@/app/preferencesStore';
 import { authService } from '@/features/auth/authService';
 import type { Locale } from '@/i18n';
+import { NotificationBell } from '@/features/notifications/NotificationsPage';
 
 const { Sider, Header, Content } = Layout;
 
@@ -85,7 +86,7 @@ export function AppShell() {
           <Input className="global-search" allowClear prefix={<SearchOutlined />} placeholder={t('globalSearch')}
             value={search} onChange={(event) => setSearch(event.target.value)} onPressEnter={() => navigate(`/app/staff?search=${encodeURIComponent(search)}`)} />
           <Space size="middle" className="header-actions">
-            <Button type="text" aria-label={t('notifications')} icon={<Badge dot><BellOutlined /></Badge>} onClick={() => navigate('/app/notifications')} />
+            <NotificationBell />
             <Select aria-label={t('language')} value={locale} onChange={(value: Locale) => setLocale(value)} options={[
               { value: 'en', label: 'English' }, { value: 'fa', label: 'فارسی' },
             ]} />

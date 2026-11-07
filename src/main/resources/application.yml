@@ -12,7 +12,7 @@ spring:
       hibernate.format_sql: false
   flyway:
     enabled: true
-    locations: classpath:db/migration,classpath:com.example.logistics.tracking
+    locations: classpath:db/migration
     validate-on-migrate: true
 transport:
   routing:
@@ -92,6 +92,9 @@ app:
     access-key: ${MINIO_ACCESS_KEY:minioadmin}
     secret-key: ${MINIO_SECRET_KEY:minioadmin}
     bucket: ${MINIO_BUCKET:logistics-files}
+  notifications:
+    outbox-poll-millis: ${NOTIFICATION_OUTBOX_POLL_MILLIS:2000}
+    delivery-poll-millis: ${NOTIFICATION_DELIVERY_POLL_MILLIS:2000}
 
 ---
 spring:

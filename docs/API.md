@@ -1,6 +1,6 @@
 # API Contract Conventions
 
-**Status:** Proposed contract conventions; endpoints are illustrative and unimplemented.
+**Status:** Baseline contract conventions; most endpoints remain illustrative. Notifications are implemented as described below.
 
 ## General
 
@@ -9,7 +9,7 @@
 - Collections use `page`, `size`, `sort` with bounded page size and stable ordering. Filters are allowlisted; tenant/customer scope is derived from authenticated identity.
 - Mutating requests accept `Idempotency-Key` where retries could duplicate a business action. Require `If-Match`/version for conflict-prone edits or include an explicit version field.
 - Correlation ID is accepted or generated and returned as `X-Correlation-ID`.
-- WebSocket events hint clients to refresh authorized REST resources; they do not carry sensitive data unnecessarily.
+- WebSocket events hint clients to refresh authorized REST resources; notification messages carry only sanitized display text and links.
 
 ## Candidate resource map
 
@@ -28,7 +28,7 @@
 | Operational validation | `POST /transport/validate` | Checks supplied load, vehicle, driver, availability, license, driving-hour, and working-hour snapshots. |
 | Carrier tenders | `/transport/tenders`, `/transport/tenders/{id}/quote`, `/transport/tenders/{id}/award` | Invite carriers, record quotes, and award one quoted tender per shipment. |
 | Billing | `/invoices`, `/invoices/{id}`, `/invoices/{id}/issue` | Finance permissions; issued documents immutable. |
-| Notifications | `/notifications`, `/notification-preferences` | Actor scoped. |
+| Notifications | `/notifications`, `/notification-preferences` | Authenticated user and organization scoped. |
 
 ## Error envelope
 
@@ -70,6 +70,24 @@ All commands return a resource representation or `202 Accepted` only when work i
 | `POST /api/v1/offline/sync` | device ID and ordered commands with stable command IDs | per-command applied/rejected/conflict result; retry is idempotent |
 
 The precise field schemas, enums, limits, and role scopes are generated in OpenAPI during foundation work after the missing product spec is supplied. Signed object URLs are bearer capabilities: short TTL, one object and operation, no list permission; complete/scan/accept remains a server-side workflow.
+
+### Notifications
+
+The notification API is implemented under `/api/v1` and always scopes reads and writes to the authenticated user and organization:
+
+| Operation | Contract |
+|---|---|
+| `GET /notifications?page=0&size=20&unreadOnly=false` | Returns the user's notification history; page size is limited to 100. |
+| `GET /notifications/unread-count` | Returns `{ "count": number }`. |
+| `PATCH /notifications/{id}/read` | Marks one owned notification as read; another user's notification resolves to `404`. |
+| `POST /notifications/read-all` | Marks all of the actor's unread notifications as read. |
+| `GET /notifications/{id}/deliveries` | Returns channel, status, attempt count, and delivery timestamps without provider error details or recipient addresses. |
+| `GET /notification-preferences` | Returns channel switches and selected `en`/`fa` locale. |
+| `PUT /notification-preferences` | Accepts `{ "inApp": true, "email": false, "sms": false, "webPush": false, "locale": "en" }`. |
+
+Business events are consumed from the transactional `outbox_event` table and deduplicated by event fingerprint. Notification records and channel delivery jobs are persisted before attempting delivery. Failed deliveries retry with exponential backoff and move to `DEAD_LETTER` after five attempts. WebSocket updates use the existing `/ws/tracking` STOMP endpoint and the private `/topic/notifications/{authenticated-user-id}` destination; subscribing to another user's destination is denied. Notification content uses plain-text English/Persian templates and excludes business payloads such as addresses, coordinates, amounts, and free-form event details.
+
+The development profile includes local SMS and Web Push adapters that log acceptance rather than contacting an external provider. Production deployments must supply their own `NotificationChannelProvider` implementations for enabled SMS/Web Push channels; email uses the configured SMTP service.
 
 ## Offline synchronization contract
 

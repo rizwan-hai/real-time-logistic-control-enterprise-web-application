@@ -9,6 +9,7 @@ import { OrdersPage } from '@/features/orders/OrdersPage';
 import { WarehousePage } from '@/features/warehouse/WarehousePage';
 import { DispatchPage } from '@/features/transport/DispatchPage';
 import { ControlTowerPage } from '@/features/transport/ControlTowerPage';
+import { NotificationsPage } from '@/features/notifications/NotificationsPage';
 import {
   CustomerPortalPage, DriverWorkspacePage, PermissionMatrixPage, ProfilePage, PublicTrackingPage,
   RoleManagementPage, SessionsPage, ShipmentTrackingPlaceholder, StaffOverviewPage,
@@ -44,7 +45,7 @@ const router = createBrowserRouter([
         { path: 'profile', element: <ProfilePage /> },
         { path: 'sessions', element: <SessionsPage /> },
         { path: 'settings', element: <WorkspaceModulePage title="Settings" /> },
-        { path: 'notifications', element: <WorkspaceModulePage title="Notifications" /> },
+        { path: 'notifications', element: <NotificationsPage /> },
         {
           element: <RoleRoute roles={staffRoles} />,
           children: [

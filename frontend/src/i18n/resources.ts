@@ -12,6 +12,13 @@ export const resources = {
     emptyTitle: 'Nothing here yet', emptyDescription: 'When information is available, it will appear here.',
     errorTitle: 'Something went wrong', retry: 'Try again', publicTrackingTitle: 'Track a shipment', trackingCode: 'Tracking code',
     recentActivity: 'Recent activity', quickActions: 'Quick actions', viewAll: 'View all',
+    notificationHistoryDescription: 'Review business updates and manage the channels used to reach you.',
+    notificationPreferences: 'Notification preferences', notificationHistory: 'History', markAllRead: 'Mark all as read',
+    markRead: 'Mark as read', openNotification: 'Open', viewRelatedRecord: 'View related record',
+    inAppNotifications: 'In-app', emailNotifications: 'Email', smsNotifications: 'SMS', webPushNotifications: 'Web push',
+    notificationLanguage: 'Notification language', allNotificationsRead: 'All notifications marked as read.',
+    notificationPreferencesSaved: 'Notification preferences saved.', notificationLoadError: 'Notifications could not be loaded.',
+    loadMoreNotifications: 'Load more notifications',
   } },
   fa: { translation: {
     appName: 'کنترل لجستیک', welcome: 'خوش آمدید', dashboard: 'داشبورد', overview: 'نمای کلی',
@@ -26,6 +33,13 @@ export const resources = {
     emptyTitle: 'هنوز چیزی وجود ندارد', emptyDescription: 'اطلاعات پس از آماده شدن در اینجا نمایش داده می‌شود.',
     errorTitle: 'مشکلی پیش آمد', retry: 'تلاش دوباره', publicTrackingTitle: 'پیگیری محموله', trackingCode: 'کد پیگیری',
     recentActivity: 'فعالیت‌های اخیر', quickActions: 'دسترسی سریع', viewAll: 'نمایش همه',
+    notificationHistoryDescription: 'به‌روزرسانی‌های کاری را بررسی و کانال‌های دریافت اعلان را مدیریت کنید.',
+    notificationPreferences: 'تنظیمات اعلان', notificationHistory: 'تاریخچه', markAllRead: 'خواندن همه',
+    markRead: 'علامت‌گذاری به‌عنوان خوانده‌شده', openNotification: 'باز کردن', viewRelatedRecord: 'مشاهده رکورد مرتبط',
+    inAppNotifications: 'درون‌برنامه‌ای', emailNotifications: 'ایمیل', smsNotifications: 'پیامک', webPushNotifications: 'اعلان وب',
+    notificationLanguage: 'زبان اعلان', allNotificationsRead: 'همه اعلان‌ها خوانده‌شده علامت‌گذاری شدند.',
+    notificationPreferencesSaved: 'تنظیمات اعلان ذخیره شد.', notificationLoadError: 'بارگذاری اعلان‌ها ناموفق بود.',
+    loadMoreNotifications: 'بارگذاری اعلان‌های بیشتر',
   } },
 } as const;
 

@@ -11,6 +11,7 @@ Last reviewed: 2026-11-06
 - Phase 0E: **Deployment foundation files created; Docker runtime verification is blocked because Docker CLI is unavailable in this environment.**
 - Phase 4: **Initial TMS vertical slice implemented; full operational validation and browser verification remain incomplete.**
 - Phase 5: **Substantial tracking slice implemented; acceptance is not complete.** Device-authenticated batch GPS ingestion, async batch persistence, event idempotency, monthly event-time partitioning, Redis latest-position projection, tenant-scoped STOMP updates, geofences, ETA estimates, basic exception rules and public tracking links are present. The Control Tower includes fleet/alert/geofence views and trip-history replay. Real map tiles/clustering, rule tuning/notifications, sustained benchmark evidence and production MySQL/Redis/WebSocket verification remain incomplete.
+- Phase 8: **Notification infrastructure implemented; acceptance is not complete.** Notification records/preferences/templates/delivery logs, outbox consumption and deduplication, English/Persian rendering, per-user REST and STOMP authorization, retries/dead-letter handling, and the notification center are present. Order, trip dispatch, ETA, GPS alert, idle, and geofence events are wired; other event types are consumed when their owning business modules publish them. Production SMS/Web Push adapters, browser build verification, and SPEC reconciliation remain outstanding.
 - Phases 1, 2, and 6 through 11: **Not started.**
 - Phase 3: **WMS implementation started; incomplete.**
 - Application implementation: **Backend foundation, identity/authentication, initial order/shipment workflows, and partial WMS vertical slice.** Other business-domain workflows remain unimplemented.
@@ -41,6 +42,16 @@ Last reviewed: 2026-11-06
 - [x] RFC 7807-compatible errors, success envelope, validation, pagination/sorting/filter parsing, MapStruct configuration, OpenAPI, Actuator, Micrometer, structured logging, correlation IDs, Redis rate limiting, and MinIO client configuration.
 - [x] Context, migration, API error, pagination/filter, correlation, and external-client configuration tests.
 - [ ] Validate foundation against missing `.github/copilot-instructions.md` and `docs/SPEC.md` when available.
+
+## Phase 8 notification implementation status
+
+- [x] Added notification, template, preference, delivery-log, event-receipt, and ETA-snapshot schemas with English and Persian defaults.
+- [x] Added idempotent transactional outbox consumption, per-user delivery jobs, exponential retries, dead-letter status, preference-based channel selection, and delivery history.
+- [x] Added in-app, authorized WebSocket, SMTP email, and local development SMS/Web Push adapters behind a provider interface.
+- [x] Added actor-scoped notification APIs, unread/read actions, preference management, history, a notification bell, real-time refresh, and deep links.
+- [x] Wired order status, shipment assignment, trip dispatch, ETA, GPS, idle, delivery-delay, and geofence events. The consumer also supports document expiry, inventory, POD, invoice, and payment event contracts.
+- [x] Backend tests cover duplicate suppression, language selection, sensitive-content exclusion, provider failure, retries, dead-letter status, REST scoping, and WebSocket destination authorization.
+- [ ] Full Phase 8 acceptance remains pending: `docs/SPEC.md` is absent, source workflows for several event types do not exist yet, production SMS/Web Push providers are deployment-specific, and frontend tests/build could not run because npm dependencies are unavailable and the local cache lacks packages.
 
 ## Evidence and constraints
 
