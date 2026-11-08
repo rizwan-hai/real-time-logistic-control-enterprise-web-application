@@ -22,6 +22,8 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import com.example.logistics.administration.AdministrationService;
+import com.example.logistics.administration.ApiKeyAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -92,9 +94,11 @@ public class IdentitySecurityConfiguration {
 
     @Bean SecurityFilterChain securityFilterChain(HttpSecurity http, CookieCsrfTokenRepository csrf,
                                                   org.springframework.core.convert.converter.Converter<Jwt, org.springframework.security.authentication.AbstractAuthenticationToken> converter,
-                                                  com.example.logistics.identity.infrastructure.DeviceSessionRepository sessions, java.time.Clock clock) throws Exception {
+                                                  com.example.logistics.identity.infrastructure.DeviceSessionRepository sessions, java.time.Clock clock,
+                                                  AdministrationService administration) throws Exception {
         http.csrf(config -> config.csrfTokenRepository(csrf)
-                        .ignoringRequestMatchers("/api/v1/tracking/positions"))
+                        .ignoringRequestMatchers("/api/v1/tracking/positions")
+                        .ignoringRequestMatchers(request -> request.getHeader("X-API-Key") != null))
                 .cors(Customizer.withDefaults())
                 .sessionManagement(config -> config.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .formLogin(AbstractHttpConfigurer::disable)
@@ -110,6 +114,8 @@ public class IdentitySecurityConfiguration {
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(resource -> resource.jwt(jwt -> jwt.jwtAuthenticationConverter(converter)));
         http.addFilterAfter(new DeviceSessionValidationFilter(sessions, clock), org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter.class);
+        http.addFilterBefore(new ApiKeyAuthenticationFilter(administration, clock),
+                org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter.class);
         return http.build();
     }
 
@@ -117,7 +123,7 @@ public class IdentitySecurityConfiguration {
         var cors = new CorsConfiguration();
         cors.setAllowedOrigins(List.of(properties.appBaseUrl()));
         cors.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        cors.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-XSRF-TOKEN", "X-Correlation-ID", "If-Match", "X-Device-Id", "X-Device-Token"));
+        cors.setAllowedHeaders(List.of("Authorization", "X-API-Key", "Content-Type", "X-XSRF-TOKEN", "X-Correlation-ID", "If-Match", "X-Device-Id", "X-Device-Token"));
         cors.setExposedHeaders(List.of("X-Correlation-ID", "Retry-After"));
         cors.setAllowCredentials(true);
         var source = new UrlBasedCorsConfigurationSource();

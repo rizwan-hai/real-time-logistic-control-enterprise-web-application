@@ -39,7 +39,7 @@ export function WorkspaceModulePage({ title, description }: { title: string; des
 }
 
 export function CustomerPortalPage() {
-  return <AnalyticsDashboard customer />;
+  return <Navigate to="/portal" replace />;
 }
 
 export function DriverWorkspacePage() {

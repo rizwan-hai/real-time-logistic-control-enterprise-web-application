@@ -45,6 +45,19 @@ a { color: var(--brand); }
 .error-state { padding: 16px; }
 .timeline { max-inline-size: 800px; }
 .file-uploader { inline-size: 100%; }
+.portal-layout { min-block-size: 100vh; background: var(--surface-muted); }
+.portal-header { position: sticky; z-index: 10; inset-block-start: 0; display: flex; align-items: center; gap: 24px; padding-inline: clamp(16px, 5vw, 64px); background: var(--surface); border-block-end: 1px solid var(--line); }
+.portal-brand { color: inherit; font-size: 18px; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.portal-navigation { display: flex; align-items: center; gap: 20px; margin-inline-start: auto; }
+.portal-navigation a { color: inherit; text-decoration: none; }
+.portal-navigation a[aria-current="page"] { color: var(--brand); font-weight: 600; }
+.portal-content { inline-size: min(100%, 1120px); margin-inline: auto; padding: 28px clamp(16px, 4vw, 40px); }
+.portal-title { display: flex; justify-content: space-between; align-items: start; gap: 16px; }
+.portal-card { margin-block: 18px; }
+.portal-form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 0 16px; }
+.portal-submit { margin-block-start: 16px; }
+.portal-stats { margin-block: 18px; }
+.portal-address-form { inline-size: min(100%, 560px); }
 [dir="rtl"] .ant-menu-item, [dir="rtl"] .ant-breadcrumb { text-align: start; }
 :root[data-theme="dark"] { color-scheme: dark; background: #0f141a; --surface: #141a20; --surface-muted: #0f141a; --line: #303943; --text-muted: #aab5c0; --brand: #43aaa3; }
 :root[data-theme="dark"] body { color: #e7edf2; background: var(--surface-muted); }
@@ -56,4 +69,8 @@ a { color: var(--brand); }
   .header-actions { gap: 6px !important; }
   .header-actions .ant-select { max-inline-size: 92px; }
   .page-content { padding: 16px 12px 28px; }
+  .portal-header { block-size: auto; min-block-size: 64px; flex-wrap: wrap; gap: 12px; padding-block: 10px; }
+  .portal-navigation { order: 3; inline-size: 100%; margin-inline-start: 0; justify-content: space-between; gap: 8px; }
+  .portal-content { padding: 18px 12px; }
+  .portal-title { flex-direction: column; }
 }

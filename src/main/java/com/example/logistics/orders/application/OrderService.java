@@ -56,6 +56,32 @@ public class OrderService {
         return result;
     }
     @Transactional(readOnly=true) public List<Map<String,Object>> list(UUID org) { return db.queryForList("SELECT id,order_number orderNumber,customer_id customerId,status,fulfillment_type fulfillmentType,currency,created_at createdAt FROM sales_order WHERE organization_id=? ORDER BY created_at DESC",org.toString()); }
+    @Transactional(readOnly=true) public List<Map<String,Object>> listForCustomer(UUID org, UUID customer) {
+        return db.queryForList("SELECT id,order_number orderNumber,customer_id customerId,status,fulfillment_type fulfillmentType,currency,created_at createdAt FROM sales_order WHERE organization_id=? AND customer_id=? ORDER BY created_at DESC",
+                org.toString(), customer.toString());
+    }
+    @Transactional(readOnly=true) public Map<String,Object> getForCustomer(UUID org, UUID customer, UUID id) {
+        var order = rawOrder(org, id);
+        if (!customer.toString().equals(String.valueOf(order.get("customerId")))) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "ORDER_NOT_FOUND", "Order not found");
+        }
+        order.put("lines", db.queryForList("""
+                SELECT description,quantity,unit,unit_price unitPrice
+                FROM order_line WHERE order_id=? ORDER BY id
+                """, id.toString()));
+        order.put("history", db.queryForList("""
+                SELECT to_status toStatus,occurred_at occurredAt
+                FROM order_status_history WHERE order_id=? ORDER BY occurred_at,id
+                """, id.toString()));
+        return order;
+    }
+    @Transactional public Map<String,Object> createForCustomer(UUID org, UUID customer, UUID actor, CreateOrder body) {
+        if (body.customerId() != null && !customer.equals(body.customerId())) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "CUSTOMER_SCOPE_FORBIDDEN", "Orders can only be created for the authenticated customer");
+        }
+        return create(org, actor, new CreateOrder(customer, body.fulfillmentType(), body.shipTo(),
+                body.currency(), body.requestedDeliveryAt(), body.lines()));
+    }
 
     @Transactional public void comment(UUID org, UUID actor, UUID id, String body) { rawOrder(org,id); db.update("INSERT INTO order_comment(id,organization_id,order_id,actor_id,body) VALUES(?,?,?,?,?)",UUID.randomUUID().toString(),org.toString(),id.toString(),actor==null?null:actor.toString(),body); }
 

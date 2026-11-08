@@ -11,9 +11,15 @@ import { DispatchPage } from '@/features/transport/DispatchPage';
 import { ControlTowerPage } from '@/features/transport/ControlTowerPage';
 import { NotificationsPage } from '@/features/notifications/NotificationsPage';
 import {
-  CustomerPortalPage, DriverWorkspacePage, PermissionMatrixPage, ProfilePage, PublicTrackingPage,
+  CustomerAddressesPage, CustomerDocumentsPage, CustomerPortalLayout, CustomerPortalPage,
+  CustomerProfilePage, CustomerShipmentsPage,
+} from '@/features/portal/CustomerPortal';
+import { AdministrationPage } from '@/features/administration/AdministrationPage';
+import {
+  DriverWorkspacePage, PermissionMatrixPage, ProfilePage, PublicTrackingPage,
   RoleManagementPage, SessionsPage, ShipmentTrackingPlaceholder, StaffOverviewPage,
   UserManagementPage, WorkspaceModulePage,
+  CustomerPortalPage as WorkspaceCustomerPortalPage,
 } from '@/features/workspaces/WorkspacePages';
 
 const staffRoles = ['PLATFORM_ADMIN', 'ORGANIZATION_ADMIN', 'OPERATIONS_MANAGER', 'ORDER_CLERK', 'TRANSPORT_DISPATCHER', 'WAREHOUSE_OPERATOR', 'FINANCE_CLERK', 'FINANCE_APPROVER', 'AUDITOR'];
@@ -35,6 +41,22 @@ const router = createBrowserRouter([
   { path: '/403', element: <AccessDeniedPage /> },
   { path: '/tracking', element: <PublicTrackingPage /> },
   { path: '/tracking/:trackingCode', element: <ShipmentTrackingPlaceholder /> },
+  { path: '/track', element: <PublicTrackingPage /> },
+  { path: '/track/:trackingCode', element: <ShipmentTrackingPlaceholder /> },
+  {
+    element: <ProtectedRoute />,
+    children: [{
+      element: <RoleRoute roles={['CUSTOMER_USER']} />,
+      children: [{ path: '/portal', element: <CustomerPortalLayout />, children: [
+        { index: true, element: <CustomerPortalPage /> },
+        { path: 'shipments', element: <CustomerShipmentsPage /> },
+        { path: 'documents', element: <CustomerDocumentsPage /> },
+        { path: 'addresses', element: <CustomerAddressesPage /> },
+        { path: 'profile', element: <CustomerProfilePage /> },
+        { path: 'notifications', element: <NotificationsPage /> },
+      ] }],
+    }],
+  },
   {
     element: <ProtectedRoute />,
     children: [{
@@ -60,9 +82,10 @@ const router = createBrowserRouter([
             { element: <PermissionRoute permission="identity.users.read" />, children: [{ path: 'staff/users', element: <UserManagementPage /> }] },
             { element: <PermissionRoute permission="identity.roles.read" />, children: [{ path: 'staff/roles', element: <RoleManagementPage /> }] },
             { element: <PermissionRoute permission="identity.permissions.read" />, children: [{ path: 'staff/permissions', element: <PermissionMatrixPage /> }] },
+            { element: <RoleRoute roles={['PLATFORM_ADMIN', 'ORGANIZATION_ADMIN', 'AUDITOR']} />, children: [{ path: 'staff/system', element: <AdministrationPage /> }] },
           ],
         },
-        { element: <RoleRoute roles={['CUSTOMER_USER']} />, children: [{ path: 'customer', element: <CustomerPortalPage /> }] },
+        { element: <RoleRoute roles={['CUSTOMER_USER']} />, children: [{ path: 'customer', element: <WorkspaceCustomerPortalPage /> }] },
         { element: <RoleRoute roles={['DRIVER']} />, children: [{ path: 'driver', element: <DriverWorkspacePage /> }] },
         { path: '*', element: <Navigate to="/403" replace /> },
       ],

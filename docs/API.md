@@ -1,6 +1,6 @@
 # API Contract Conventions
 
-**Status:** Baseline contract conventions; most endpoints remain illustrative. Notifications and initial analytics/reporting endpoints are implemented as described below.
+**Status:** Baseline contract conventions; most endpoints remain illustrative. Notifications, initial analytics/reporting, Phase 10 administration controls, and customer portal endpoints are implemented as described below.
 
 ## General
 
@@ -30,6 +30,22 @@
 | Billing | `/invoices`, `/invoices/{id}`, `/invoices/{id}/issue` | Finance permissions; issued documents immutable. |
 | Notifications | `/notifications`, `/notification-preferences` | Authenticated user and organization scoped. |
 | Reports | `/reports/{dashboard,trends,deliveries,exports,schedules}` | Role-specific dashboards; tenant/customer/warehouse scoped reads; requester-scoped export jobs and schedules. |
+| Customer portal | `/portal/{orders,shipments,addresses,profile,invoices,proofs}` | Customer role; organization and customer ID are derived from claims; cross-customer lookups return not found. |
+| Administration | `/admin/{audit,settings,api-keys,webhooks,calendars,holidays,health}` | Organization administration; auditors have read-only audit access. |
+| Integration clients | `X-API-Key` on `/integrations/orders` | Hashed key storage, expiry/revocation, and endpoint authority checks via named scopes such as `orders.read`. |
+| Public tracking | `/tracking/public/{token}` and UI `/track/{token}` | High-entropy expiring token, rate-limited response with coarse recent coordinates and ETA only. |
+
+### Phase 10 administration and customer portal
+
+- `GET /admin/audit` supports actor, action, entity, security-event, timestamp, and bounded-result filters; `GET /admin/audit/export` returns CSV. Application APIs expose no audit update/delete operations. Audit snapshots strip password/token/secret and selected PII fields.
+- `GET/PUT /admin/settings/{key}` supports `STRING`, `INTEGER`, `DECIMAL`, `BOOLEAN`, and `JSON`; secret values are encrypted at rest and omitted from read responses. Writes invalidate the in-process typed-setting cache.
+- `POST /admin/sequences/{key}/next` issues organization-scoped sequence values. `PUT /admin/calendars/{key}` configures locale, IANA timezone and weekend days; `PUT /admin/holidays/{calendarKey}/{date}` manages Gregorian ISO dates.
+- API keys are shown once at creation, stored as SHA-256 digests, limited by explicit authorities/scopes, and support expiry, revocation and last-use/audit records.
+- Webhook secrets are encrypted and shown once at creation/rotation. Outbox events are deduplicated into delivery jobs, signed with HMAC-SHA256 (`X-Webhook-Signature`), attempted at most five times with exponential backoff, and expose delivery/attempt history. Redirects and non-public destination addresses are rejected.
+- `GET /admin/health` reports database, Redis, MinIO, outbox/GPS metrics, and configured WebSocket/integration status.
+- Customer order routes are `GET/POST /portal/orders`, `POST /portal/orders/bulk` (up to 100), and `GET /portal/shipments`. Customer addresses and locale are saved under the token's customer claim. Invoice/POD downloads require a registered clean attachment belonging to that customer and stream through the authenticated API.
+
+Invoice issuance and billing persistence are not yet implemented in this repository; invoice documents must be registered by staff against a scanned attachment. The customer tracking page shows recent coarse coordinates and links to a map provider; it does not yet render an in-app live tile map. Jalali-calendar date conversion and automated outbox/webhook integration tests remain follow-up work.
 
 ### Reporting
 

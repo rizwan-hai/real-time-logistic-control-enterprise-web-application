@@ -11,7 +11,10 @@ class InfrastructureMigrationTest {
         var dataSource = new DriverManagerDataSource("jdbc:h2:mem:migration;MODE=MySQL;DB_CLOSE_DELAY=-1", "sa", "");
         dataSource.setDriverClassName("org.h2.Driver");
         Flyway.configure().dataSource(dataSource).locations("classpath:db/migration")
-                .javaMigrations(new com.example.logistics.analytics.V9__AnalyticsSchema()).load().migrate();
+                .javaMigrations(new com.example.logistics.tracking.V7__TrackingSchema(),
+                        new com.example.logistics.notifications.V8__NotificationSchema(),
+                        new com.example.logistics.analytics.V9__AnalyticsSchema(),
+                        new com.example.logistics.administration.V10__AdministrationSchema()).load().migrate();
         var jdbc = new org.springframework.jdbc.core.JdbcTemplate(dataSource);
         for (String table : new String[]{"NUMBER_SEQUENCE", "SETTING", "AUDIT_LOG", "ATTACHMENT", "OUTBOX_EVENT",
                 "USER_ACCOUNT", "ROLE", "PERMISSION", "USER_ROLE", "ROLE_PERMISSION", "REFRESH_TOKEN",
@@ -23,6 +26,17 @@ class InfrastructureMigrationTest {
             Integer count = jdbc.queryForObject("select count(*) from information_schema.tables where upper(table_name) = ?", Integer.class, table);
             assertThat(count).as("table %s should be migrated", table).isEqualTo(1);
         }
+        for (String table : new String[]{"API_KEY", "WEBHOOK_ENDPOINT", "WEBHOOK_DELIVERY",
+                "WEBHOOK_DELIVERY_ATTEMPT", "WEBHOOK_EVENT_RECEIPT", "BUSINESS_CALENDAR",
+                "BUSINESS_HOLIDAY", "CUSTOMER_ADDRESS", "CUSTOMER_DOCUMENT", "CUSTOMER_PORTAL_PROFILE"}) {
+            Integer count = jdbc.queryForObject("select count(*) from information_schema.tables where upper(table_name) = ?", Integer.class, table);
+            assertThat(count).as("table %s should be migrated", table).isEqualTo(1);
+        }
+        Integer ipColumn = jdbc.queryForObject("""
+                select count(*) from information_schema.columns
+                where upper(table_name)='AUDIT_LOG' and upper(column_name)='IP_ADDRESS'
+                """, Integer.class);
+        assertThat(ipColumn).isEqualTo(1);
         String scope = UUID.randomUUID().toString();
         jdbc.update("insert into number_sequence(id, scope_id, sequence_key, current_value) values (?, ?, ?, ?)", UUID.randomUUID().toString(), scope, "invoice", 1);
         assertThat(jdbc.queryForObject("select current_value from number_sequence where scope_id = ? and sequence_key = ?", Long.class, scope, "invoice")).isEqualTo(1L);

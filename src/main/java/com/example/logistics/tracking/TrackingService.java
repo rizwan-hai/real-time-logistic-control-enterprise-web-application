@@ -270,7 +270,7 @@ public class TrackingService {
         if(db.queryForList("SELECT id FROM shipment WHERE id=? AND organization_id=?",shipmentId,organizationId).isEmpty())throw new IllegalArgumentException("Shipment not found");
         byte[] raw=new byte[32];new java.security.SecureRandom().nextBytes(raw);String token=HexFormat.of().formatHex(raw);String id=UUID.randomUUID().toString();Instant expiry=Instant.now().plus(Duration.ofDays(days));
         db.update("INSERT INTO public_tracking_token(id,shipment_id,token_hash,expires_at) VALUES(?,?,?,?)",id,shipmentId,sha(token),expiry);
-        return Map.of("linkId",id,"token",token,"url","/tracking/"+token,"expiresAt",expiry.toString());
+        return Map.of("linkId",id,"token",token,"url","/track/"+token,"expiresAt",expiry.toString());
     }
     @Transactional public Map<String,Object> revokePublicToken(String organizationId,String shipmentId,String linkId){
         int changed=db.update("UPDATE public_tracking_token SET revoked=TRUE WHERE id=? AND shipment_id=? AND EXISTS (SELECT 1 FROM shipment WHERE id=? AND organization_id=?)",
@@ -280,7 +280,7 @@ public class TrackingService {
     }
     public Map<String,Object> publicShipment(String token){
         String hash=sha(token);var rows=db.query("SELECT p.shipment_id,s.shipment_number,s.status,p.expires_at,p.revoked FROM public_tracking_token p JOIN shipment s ON s.id=p.shipment_id WHERE p.token_hash=?",(r,n)->new Object[]{r.getString(1),r.getString(2),r.getString(3),r.getTimestamp(4).toInstant(),r.getBoolean(5)},hash);
-        if(rows.isEmpty()||(boolean)rows.get(0)[4]||((Instant)rows.get(0)[3]).isBefore(Instant.now()))throw new IllegalArgumentException("Tracking link is invalid or expired");
+        if(rows.isEmpty()||(boolean)rows.get(0)[4]||!((Instant)rows.get(0)[3]).isAfter(Instant.now()))throw new IllegalArgumentException("Tracking link is invalid or expired");
         String rateKey="tracking:public-rate:"+hash;Long hits=redis.opsForValue().increment(rateKey);if(hits!=null&&hits==1)redis.expire(rateKey,Duration.ofMinutes(1));if(hits!=null&&hits>30)throw new RateLimitException();
         String shipment=(String)rows.get(0)[0];var locations=db.query("SELECT g.trip_id,g.latitude,g.longitude,g.recorded_at FROM gps_position g JOIN trip_shipment ts ON ts.trip_id=g.trip_id WHERE ts.shipment_id=? AND g.recorded_at>=? ORDER BY g.recorded_at DESC LIMIT 1",(r,n)->new Object[]{r.getString(1),r.getDouble(2),r.getDouble(3),r.getTimestamp(4).toInstant()},shipment,Instant.now().minus(Duration.ofMinutes(15)));
         var result=new LinkedHashMap<String,Object>();result.put("shipmentNumber",rows.get(0)[1]);result.put("status",rows.get(0)[2]);result.put("eta",null);        if(!locations.isEmpty()){Object[] l=locations.get(0);result.put("location",Map.of("latitude",Math.round((double)l[1]*1000.0)/1000.0,"longitude",Math.round((double)l[2]*1000.0)/1000.0,"recordedAt",l[3]));result.put("eta",eta((String)l[0],(double)l[1],(double)l[2]).get("estimatedArrival"));}else result.put("location",null);return result;

@@ -36,6 +36,7 @@ export function AppShell() {
     users: t('users'), roles: t('roles'), permissions: t('permissionMatrix', 'Permission matrix'), settings: t('settings'),
     profile: t('profile'), sessions: t('sessions', 'Sessions'),
     'master-data': 'Master data', customers: 'Customers', suppliers: 'Suppliers', carriers: 'Carriers', products: 'Products', vehicles: 'Vehicles', drivers: 'Drivers', warehouses: 'Warehouses', regions: 'Regions',
+    system: t('administration'),
   };
   const breadcrumbItems = location.pathname.split('/').filter(Boolean).map((segment, index, all) => ({
     title: index === all.length - 1 ? labels[segment] ?? segment : <Link to={`/${all.slice(0, index + 1).join('/')}`}>{labels[segment] ?? segment}</Link>,
@@ -52,6 +53,7 @@ export function AppShell() {
     { key: '/app/staff/users', icon: <TeamOutlined />, label: t('users'), permission: 'identity.users.read' },
     { key: '/app/staff/roles', icon: <SafetyCertificateOutlined />, label: t('roles'), permission: 'identity.roles.read' },
     { key: '/app/staff/permissions', icon: <SafetyCertificateOutlined />, label: t('permissionMatrix', 'Permission matrix'), permission: 'identity.permissions.read' },
+    { key: '/app/staff/system', icon: <SafetyCertificateOutlined />, label: t('administration'), roles: ['PLATFORM_ADMIN', 'ORGANIZATION_ADMIN', 'AUDITOR'] },
     { key: '/app/customer', icon: <UserOutlined />, label: t('customer') },
     { key: '/app/driver', icon: <CarOutlined />, label: t('driver') },
     { key: '/tracking', icon: <FileSearchOutlined />, label: t('publicTracking') },
@@ -60,6 +62,7 @@ export function AppShell() {
     if (isStaff && !['PLATFORM_ADMIN', 'ORGANIZATION_ADMIN', 'OPERATIONS_MANAGER', 'ORDER_CLERK', 'TRANSPORT_DISPATCHER', 'WAREHOUSE_OPERATOR', 'FINANCE_CLERK', 'FINANCE_APPROVER', 'AUDITOR'].some(hasRole)) return false;
     if (item.key === '/app/customer' && !hasRole('CUSTOMER_USER')) return false;
     if (item.key === '/app/driver' && !hasRole('DRIVER')) return false;
+    if ('roles' in item && item.roles && !item.roles.some(hasRole)) return false;
     return !('permission' in item) || hasPermission(item.permission);
   }), [hasPermission, hasRole, t]);
 
