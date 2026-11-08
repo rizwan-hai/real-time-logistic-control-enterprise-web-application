@@ -1,5 +1,7 @@
 # Database backup and restore
 
+See [BACKUP_AND_RECOVERY.md](BACKUP_AND_RECOVERY.md) for recovery targets, object storage/configuration gaps, and the Phase 11 test status. No backup or restore drill has been completed for this release validation.
+
 Backups are logical SQL dumps of the configured application database. Protect backup files like production data and store them off-host for disaster recovery.
 
 PowerShell backup:

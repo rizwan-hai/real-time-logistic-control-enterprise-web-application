@@ -5,7 +5,7 @@
 | Area | Proposed target / design requirement |
 |---|---|
 | Availability | 99.5% monthly for core API at initial production stage; define maintenance exclusions and failure budget. |
-| Latency | Under nominal load: p95 read API ≤ 500 ms and command API ≤ 800 ms excluding external provider time; control-tower updates visible within 10 seconds for connected clients. |
+| Latency | Release acceptance target: p95 < 300 ms for standard API endpoints under a documented test environment, excluding external provider time. This supersedes the earlier planning estimates of 500 ms for reads and 800 ms for commands. Control-tower updates should be visible within 10 seconds for connected clients. No Phase 11 measurements are available; the target is unverified. |
 | Scale | Initial planning envelope: 100 concurrent web users, 500 active drivers, 10,000 shipments/day, 1 location update/driver/10 seconds while active. Load-test and revise before production. |
 | Durability | No acknowledged order, inventory posting, invoice, audit, or outbox event may be lost; MySQL transactions and backup/restore are required. |
 | Recovery | Initial proposed RPO ≤ 15 minutes and RTO ≤ 4 hours; validate infrastructure cost and restore drills. |

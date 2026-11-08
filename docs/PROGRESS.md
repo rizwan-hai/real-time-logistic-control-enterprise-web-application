@@ -2,6 +2,19 @@
 
 Last reviewed: 2026-11-08
 
+## Phase 11 security, performance, and release validation
+
+- Status: **Not accepted for release.** This phase verified the backend test suite and documented validation gaps; it did not complete security, performance, deployment, reliability, or business-workflow acceptance.
+- `mvn clean verify`: **passed**, 53 tests, 0 failures/errors/skips; H2-backed tests do not establish production MySQL behavior.
+- Frontend `npm run lint`, `npm run test`, and `npm run build`: **not completed**. Dependencies are not installed; installation failed with `EHOSTUNREACH` fetching `ws`. No lockfile was created.
+- Playwright E2E: **not run**. The only checked-in browser spec covers mocked login and forgot-password screens; workflows A–F are not implemented as end-to-end acceptance tests.
+- Docker image build, Compose integration, MySQL migration/restore, Redis/MinIO/external-provider failure drills, and container scanning: **not run**; Docker and image scanners are unavailable in this environment.
+- Security assessment: **incomplete**. A bounded source review confirmed two medium-severity access-control/session findings; both were fixed and covered by regression tests. CI configuration includes CodeQL, npm audit, and pull-request dependency review, but no scan was executed here. Broader OWASP categories, live WebSocket revocation, and deployment behavior remain unverified. Scanner presence is not an audit result.
+- Performance: **no measured API latency, database/Redis timings, WebSocket delivery, report-generation latency, or GPS throughput**. The requested p95 <300 ms and 1,000 positions/sec remain unverified targets, not results.
+- Backup/recovery: **not exercised**. RPO ≤15 minutes and RTO ≤4 hours remain proposed targets; no restore result or object-store backup verification exists.
+- Release recommendation: **do not release** until the incomplete checks, missing business workflows, and documented limitations are resolved and evidenced.
+- Architecture deviations in this phase: **none**. No business module or runtime behavior was changed.
+
 ## Current status
 
 - Phase 0A: **Approved for implementation by the Phase 0B request; product-spec validation remains pending.**
@@ -14,7 +27,8 @@ Last reviewed: 2026-11-08
 - Phase 8: **Notification infrastructure implemented; acceptance is not complete.** Notification records/preferences/templates/delivery logs, outbox consumption and deduplication, English/Persian rendering, per-user REST and STOMP authorization, retries/dead-letter handling, and the notification center are present. Order, trip dispatch, ETA, GPS alert, idle, and geofence events are wired; other event types are consumed when their owning business modules publish them. Production SMS/Web Push adapters, browser build verification, and SPEC reconciliation remain outstanding.
 - Phase 9: **Initial reporting slice implemented; acceptance is not complete.** Tenant/customer/warehouse-scoped dashboards, date filters, delivery/fleet/warehouse and trip-expense aggregates, daily shipment trends, paged delivery drill-down, CSV/streaming XLSX/PDF asynchronous export jobs, status/download authorization, recurring schedules, and role-specific ECharts dashboards are present. Financial ledger/invoice, reorder thresholds, inventory valuation, availability calendars, and dedicated delivery-attempt source data are absent, so those KPIs remain explicitly unavailable. Build/test/browser verification and reconciliation with the missing `docs/SPEC.md` §13 remain pending.
 - Phase 10: **Initial administration/customer-portal slice implemented; acceptance is not complete.** Added organization-scoped audit search/export with sensitive-field filtering, typed/encrypted settings and cache invalidation, number sequences, calendars/holidays, hashed scoped API keys and revocation, API-key authentication, webhook subscriptions/signatures/outbox delivery/retries, health checks, customer-scoped order/shipments/address/profile/document APIs, a lightweight bilingual `/portal`, and `/track` aliases. Invoice issuance/billing persistence is absent, customer documents require staff registration, there is no in-app map tile view, and Jalali calendar conversion is not complete. Backend compile and targeted tests pass; frontend build and E2E verification are pending.
-- Phases 1, 2, 6, 7, and 10–11: **Not started.**
+- Phases 1, 2, 6, and 7: **Not started.**
+- Phase 11: **Validation attempted; release acceptance remains incomplete.** See the evidence and limitations above and [TESTING.md](TESTING.md).
 - Phase 3: **WMS implementation started; incomplete.**
 - Application implementation: **Backend foundation, identity/authentication, initial order/shipment workflows, and partial WMS vertical slice.** Other business-domain workflows remain unimplemented.
 - Phase 4 includes trip lifecycle/assignment APIs and history, shipment trip linking and reassignment, trip expenses/fuel logs, carrier tender invite/quote/award, routing interfaces with a Haversine estimate adapter, a nearest-neighbor/2-opt heuristic, a pure operational validation policy, and a dispatch board with dnd-kit shipment assignment. Vehicle/load/license/hour checks are available through an explicit validation endpoint and currently rely on caller-supplied snapshots. OSRM/Google adapters, map visualization, stop reordering, automatic route-constraint integration, and full tender/delivery UX are not yet implemented.

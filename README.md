@@ -33,7 +33,10 @@ It serves the frontend at <http://localhost/> and proxies API, OpenAPI, and Swag
 - [Development setup](docs/DEVELOPMENT.md)
 - [Environment variables](docs/ENVIRONMENT.md)
 - [Database initialization](docs/DATABASE.md)
-- [Backup and restore](docs/BACKUP_RESTORE.md)
+- [Backup and restore](docs/BACKUP_AND_RECOVERY.md)
+- [Security assessment status](docs/SECURITY.md)
+- [Deployment and release gate](docs/DEPLOYMENT.md)
+- [Validation results and test plan](docs/TESTING.md)
 - [Architecture and implementation status](docs/PROGRESS.md)
 
-CI workflows are in `.github/workflows/`. They run Maven verification, frontend lint/tests/build, dependency review, CodeQL, npm audit, and container image builds. No credentials are stored in workflow files.
+CI workflows are in `.github/workflows/`. They define Maven verification, frontend lint/tests/build, dependency review, CodeQL, npm audit, and container image builds. Workflow configuration is not evidence of a passing run. See [Phase 11 validation](docs/TESTING.md) and [release status](docs/PROGRESS.md); the project has not passed release acceptance and is not represented as production-ready.

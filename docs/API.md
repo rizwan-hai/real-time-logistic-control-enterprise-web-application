@@ -2,6 +2,8 @@
 
 **Status:** Baseline contract conventions; most endpoints remain illustrative. Notifications, initial analytics/reporting, Phase 10 administration controls, and customer portal endpoints are implemented as described below.
 
+**Validation:** The backend suite passed in H2 test mode, but no production MySQL integration, OpenAPI-driven frontend build, Playwright workflow, or deployed authorization acceptance run was completed in Phase 11. Route descriptions are not evidence that the full end-to-end business workflows are available; known implementation gaps below remain release blockers.
+
 ## General
 
 - Prefix `/api/v1`; JSON over HTTPS; UTF-8; UUID public IDs; UTC ISO-8601 instants.
@@ -45,7 +47,7 @@
 - `GET /admin/health` reports database, Redis, MinIO, outbox/GPS metrics, and configured WebSocket/integration status.
 - Customer order routes are `GET/POST /portal/orders`, `POST /portal/orders/bulk` (up to 100), and `GET /portal/shipments`. Customer addresses and locale are saved under the token's customer claim. Invoice/POD downloads require a registered clean attachment belonging to that customer and stream through the authenticated API.
 
-Invoice issuance and billing persistence are not yet implemented in this repository; invoice documents must be registered by staff against a scanned attachment. The customer tracking page shows recent coarse coordinates and links to a map provider; it does not yet render an in-app live tile map. Jalali-calendar date conversion and automated outbox/webhook integration tests remain follow-up work.
+Invoice issuance and billing persistence are not yet implemented in this repository; invoice documents must be registered by staff against a scanned attachment. Thus the documented invoice/payment workflow and financial acceptance scenario are not complete. The customer tracking page shows recent coarse coordinates and links to a map provider; it does not yet render an in-app live tile map. Jalali-calendar date conversion and automated outbox/webhook integration tests remain follow-up work.
 
 ### Reporting
 

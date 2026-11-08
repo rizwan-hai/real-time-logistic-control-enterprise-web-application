@@ -25,14 +25,16 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 public class TrackingWebSocketConfiguration implements WebSocketMessageBrokerConfigurer {
     private final IdentityProperties properties;
     private final JdbcTemplate db;
+    private final TrackingWebSocketSessionValidator sessions;
     private final JwtDecoder jwtDecoder;private final Converter<org.springframework.security.oauth2.jwt.Jwt,AbstractAuthenticationToken> converter;
-    public TrackingWebSocketConfiguration(IdentityProperties properties,JdbcTemplate db,JwtDecoder jwtDecoder,Converter<org.springframework.security.oauth2.jwt.Jwt,AbstractAuthenticationToken> converter){this.properties=properties;this.db=db;this.jwtDecoder=jwtDecoder;this.converter=converter;}
+    public TrackingWebSocketConfiguration(IdentityProperties properties,JdbcTemplate db,TrackingWebSocketSessionValidator sessions,JwtDecoder jwtDecoder,Converter<org.springframework.security.oauth2.jwt.Jwt,AbstractAuthenticationToken> converter){this.properties=properties;this.db=db;this.sessions=sessions;this.jwtDecoder=jwtDecoder;this.converter=converter;}
     @Override public void registerStompEndpoints(StompEndpointRegistry registry){registry.addEndpoint("/ws/tracking").setAllowedOrigins(properties.appBaseUrl());}
     @Override public void configureMessageBroker(MessageBrokerRegistry registry){registry.enableSimpleBroker("/topic");registry.setApplicationDestinationPrefixes("/app");}
     @Override public void configureClientInboundChannel(ChannelRegistration registration){registration.interceptors(new ChannelInterceptor(){
         @Override public Message<?> preSend(Message<?> message, MessageChannel channel){
             var a=MessageHeaderAccessor.getAccessor(message,StompHeaderAccessor.class);
             if(a!=null&&a.getCommand()==StompCommand.CONNECT){String auth=a.getFirstNativeHeader("Authorization");if(auth==null||!auth.startsWith("Bearer "))throw new AccessDeniedException("Bearer token is required for tracking websocket");try{var token=jwtDecoder.decode(auth.substring(7));if(!"access".equals(token.getClaimAsString("purpose")))throw new AccessDeniedException("Access token required");a.setUser(converter.convert(token));}catch(RuntimeException ex){throw new AccessDeniedException("Invalid tracking websocket token",ex);}}
+            if(a!=null&&a.getCommand()!=null&&a.getCommand()!=StompCommand.CONNECT&&a.getCommand()!=StompCommand.DISCONNECT&&a.getUser() instanceof JwtAuthenticationToken jwt&&!sessions.isActive(jwt))throw new AccessDeniedException("Tracking websocket session is expired or revoked");
             if(a!=null&&a.getCommand()==StompCommand.SUBSCRIBE){String d=a.getDestination();var user=a.getUser();
                 if(!(user instanceof JwtAuthenticationToken jwt)||d==null)throw new AccessDeniedException("Tracking subscription is not authorized");
                 String subject=jwt.getToken().getSubject();
@@ -48,6 +50,13 @@ public class TrackingWebSocketConfiguration implements WebSocketMessageBrokerCon
                 }
                 throw new AccessDeniedException("Tracking subscription is outside your organization");
             }
+            return message;
+        }
+    });}
+    @Override public void configureClientOutboundChannel(ChannelRegistration registration){registration.interceptors(new ChannelInterceptor(){
+        @Override public Message<?> preSend(Message<?> message,MessageChannel channel){
+            var a=MessageHeaderAccessor.getAccessor(message,StompHeaderAccessor.class);
+            if(a!=null&&a.getUser() instanceof JwtAuthenticationToken jwt&&!sessions.isActive(jwt))throw new AccessDeniedException("Tracking websocket session is expired or revoked");
             return message;
         }
     });}

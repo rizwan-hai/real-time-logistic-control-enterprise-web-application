@@ -2,6 +2,8 @@
 
 **Status:** Approved target architecture for the foundation phase; product-spec validation remains pending because `docs/SPEC.md` is not present in this checkout.
 
+**Phase 11 release status:** Backend verification passed, but the platform is not accepted for release. Frontend, Playwright business workflows, production MySQL, Docker, security scans, backup/restore, resilience drills, and performance targets remain unverified. See [TESTING.md](TESTING.md), [SECURITY.md](SECURITY.md), and [PROGRESS.md](PROGRESS.md). No architecture deviation was introduced in Phase 11.
+
 ## Goals and boundaries
 
 Build a secure, auditable logistics control platform as a modular monolith. Keep transactions and core operational data in one MySQL 8 database initially; isolate business capabilities through package-by-feature boundaries and explicit application services/domain events. Scale by running multiple stateless application instances before considering service extraction. The platform serves internal operations, customers, and drivers through separate authorization scopes and responsive web/PWA experiences.
