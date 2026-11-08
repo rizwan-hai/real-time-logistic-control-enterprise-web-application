@@ -10,11 +10,16 @@ class InfrastructureMigrationTest {
     @Test void createsInfrastructureTablesAndConstraints() {
         var dataSource = new DriverManagerDataSource("jdbc:h2:mem:migration;MODE=MySQL;DB_CLOSE_DELAY=-1", "sa", "");
         dataSource.setDriverClassName("org.h2.Driver");
-        Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load().migrate();
+        Flyway.configure().dataSource(dataSource).locations("classpath:db/migration")
+                .javaMigrations(new com.example.logistics.analytics.V9__AnalyticsSchema()).load().migrate();
         var jdbc = new org.springframework.jdbc.core.JdbcTemplate(dataSource);
         for (String table : new String[]{"NUMBER_SEQUENCE", "SETTING", "AUDIT_LOG", "ATTACHMENT", "OUTBOX_EVENT",
                 "USER_ACCOUNT", "ROLE", "PERMISSION", "USER_ROLE", "ROLE_PERMISSION", "REFRESH_TOKEN",
                 "PASSWORD_RESET_TOKEN", "PASSWORD_HISTORY", "LOGIN_AUDIT", "DEVICE_SESSION", "RECOVERY_CODE"}) {
+            Integer count = jdbc.queryForObject("select count(*) from information_schema.tables where upper(table_name) = ?", Integer.class, table);
+            assertThat(count).as("table %s should be migrated", table).isEqualTo(1);
+        }
+        for (String table : new String[]{"REPORT_EXPORT_JOB", "REPORT_SCHEDULE"}) {
             Integer count = jdbc.queryForObject("select count(*) from information_schema.tables where upper(table_name) = ?", Integer.class, table);
             assertThat(count).as("table %s should be migrated", table).isEqualTo(1);
         }

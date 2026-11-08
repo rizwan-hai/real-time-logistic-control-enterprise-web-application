@@ -1,6 +1,6 @@
 # API Contract Conventions
 
-**Status:** Baseline contract conventions; most endpoints remain illustrative. Notifications are implemented as described below.
+**Status:** Baseline contract conventions; most endpoints remain illustrative. Notifications and initial analytics/reporting endpoints are implemented as described below.
 
 ## General
 
@@ -29,6 +29,19 @@
 | Carrier tenders | `/transport/tenders`, `/transport/tenders/{id}/quote`, `/transport/tenders/{id}/award` | Invite carriers, record quotes, and award one quoted tender per shipment. |
 | Billing | `/invoices`, `/invoices/{id}`, `/invoices/{id}/issue` | Finance permissions; issued documents immutable. |
 | Notifications | `/notifications`, `/notification-preferences` | Authenticated user and organization scoped. |
+| Reports | `/reports/{dashboard,trends,deliveries,exports,schedules}` | Role-specific dashboards; tenant/customer/warehouse scoped reads; requester-scoped export jobs and schedules. |
+
+### Reporting
+
+The reporting API is implemented under `/api/v1/reports`. Dashboard, trend, and delivery-detail requests accept `from` and `to` ISO dates (maximum one year), with optional `customerId`, `warehouseId`, `vehicleId`, and `driverId` filters. Customer scope is taken from the authenticated token and cannot be widened by a supplied customer ID. Warehouse dashboards require an assigned warehouse scope.
+
+- `GET /reports/dashboard` returns only the metric groups allowed for the caller's role.
+- `GET /reports/trends` returns daily shipment totals grouped by status.
+- `GET /reports/deliveries?page=0&size=100` is a bounded drill-down (size maximum 500).
+- `POST /reports/exports?format=CSV|XLSX|PDF` queues an asynchronous delivery export; `GET /reports/exports` reports the actor's jobs and `GET /reports/exports/{id}/download` permits the requester or a caller granted `report.exports.download`.
+- `GET/POST/DELETE /reports/schedules` manages the actor's daily, weekly, or monthly delivery export schedules.
+
+Export rows are read with a forward-only cursor and written incrementally. XLSX uses Apache POI's streaming workbook. Generated files expire after seven days. KPIs whose source records are not persisted (including invoiced revenue, receivables, payables, inventory valuation/turnover, reorder thresholds, and availability calendars) are returned as unavailable rather than approximated. Profit/cost figures are grouped by currency and are never summed across currencies.
 
 ## Error envelope
 

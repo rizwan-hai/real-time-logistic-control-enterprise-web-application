@@ -15,6 +15,7 @@ import { EmptyState } from '@/shared/components/EmptyState';
 import { ErrorState } from '@/shared/components/ErrorState';
 import { LoadingSkeleton } from '@/shared/components/LoadingSkeleton';
 import { StatusTag } from '@/shared/components/StatusTag';
+import { AnalyticsDashboard } from '@/features/analytics/AnalyticsDashboard';
 import { FormField } from '@/shared/components/FormField';
 import { useConfirmDialog } from '@/shared/components/ConfirmDialog';
 import type {
@@ -30,23 +31,7 @@ function PageTitle({ title, description }: { title: string; description?: string
 }
 
 export function StaffOverviewPage() {
-  const { t } = useTranslation();
-  const profile = useAuthStore((state) => state.profile);
-  return <>
-    <PageTitle title={`${t('welcome')}${profile?.email ? `, ${profile.email}` : ''}`} description={t('overview')} />
-    <Row gutter={[16, 16]}>
-      <Col xs={24} sm={12} xl={6}><Card><Statistic title={t('orders')} value="—" /></Card></Col>
-      <Col xs={24} sm={12} xl={6}><Card><Statistic title={t('shipments')} value="—" /></Card></Col>
-      <Col xs={24} sm={12} xl={6}><Card><Statistic title={t('dispatch')} value="—" /></Card></Col>
-      <Col xs={24} sm={12} xl={6}><Card><Statistic title={t('warehouse')} value="—" /></Card></Col>
-      <Col xs={24} xl={14}><Card title={t('quickActions')}><Space wrap>
-        <Button type="primary" href="/app/staff/orders">{t('orders')}</Button>
-        <Button href="/app/staff/shipments">{t('shipments')}</Button>
-        <Button href="/app/staff/dispatch">{t('dispatch')}</Button>
-      </Space></Card></Col>
-      <Col xs={24} xl={10}><Card title={t('recentActivity')}><EmptyState /></Card></Col>
-    </Row>
-  </>;
+  return <AnalyticsDashboard />;
 }
 
 export function WorkspaceModulePage({ title, description }: { title: string; description?: string }) {
@@ -54,11 +39,7 @@ export function WorkspaceModulePage({ title, description }: { title: string; des
 }
 
 export function CustomerPortalPage() {
-  const { t } = useTranslation();
-  return <><PageTitle title={t('customer')} description={t('customerDescription', 'Your orders, deliveries, and account updates in one place.')} />
-    <Row gutter={[16, 16]}><Col xs={24} md={8}><Card><Statistic title={t('orders')} value="—" /></Card></Col><Col xs={24} md={8}><Card><Statistic title={t('shipments')} value="—" /></Card></Col><Col xs={24} md={8}><Card><Statistic title={t('invoices', 'Invoices')} value="—" /></Card></Col></Row>
-    <Card className="section-card" title={t('recentActivity')}><EmptyState /></Card>
-  </>;
+  return <AnalyticsDashboard customer />;
 }
 
 export function DriverWorkspacePage() {

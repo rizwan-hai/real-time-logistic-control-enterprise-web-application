@@ -57,7 +57,7 @@ export function AppShell() {
     { key: '/tracking', icon: <FileSearchOutlined />, label: t('publicTracking') },
   ].filter((item) => {
     const isStaff = item.key.startsWith('/app/staff');
-    if (isStaff && !['PLATFORM_ADMIN', 'ORGANIZATION_ADMIN', 'OPERATIONS_MANAGER', 'ORDER_CLERK', 'TRANSPORT_DISPATCHER', 'WAREHOUSE_OPERATOR'].some(hasRole)) return false;
+    if (isStaff && !['PLATFORM_ADMIN', 'ORGANIZATION_ADMIN', 'OPERATIONS_MANAGER', 'ORDER_CLERK', 'TRANSPORT_DISPATCHER', 'WAREHOUSE_OPERATOR', 'FINANCE_CLERK', 'FINANCE_APPROVER', 'AUDITOR'].some(hasRole)) return false;
     if (item.key === '/app/customer' && !hasRole('CUSTOMER_USER')) return false;
     if (item.key === '/app/driver' && !hasRole('DRIVER')) return false;
     return !('permission' in item) || hasPermission(item.permission);

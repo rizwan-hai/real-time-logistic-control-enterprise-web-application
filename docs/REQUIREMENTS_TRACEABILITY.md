@@ -1,6 +1,6 @@
 # Requirements Traceability Matrix
 
-All entries describe planned implementation and planned evidence; none are implemented or tested in the inspected workspace. Phase labels follow [IMPLEMENTATION_ROADMAP.md](IMPLEMENTATION_ROADMAP.md).
+Entries describe current or planned implementation and evidence; phase labels follow [IMPLEMENTATION_ROADMAP.md](IMPLEMENTATION_ROADMAP.md).
 
 | Requirement | Module(s) | Phase | Planned verification |
 |---|---|---:|---|
@@ -15,7 +15,7 @@ All entries describe planned implementation and planned evidence; none are imple
 | Inventory and stock movements | inventory, warehouse | 3 | Double-post prevention, transaction rollback, balance-vs-ledger reconciliation tests. |
 | Financial management and invoicing | billing | 7 | Decimal/rounding and state tests; separation-of-duties authorization; immutable issued invoice tests. |
 | Notifications and alerts | notifications | 8 | Outbox retry/idempotency tests; preference/localization tests; provider adapter contract tests. |
-| Analytics and reporting | analytics | 9 | Aggregate correctness tests against seeded facts; access-scope tests; export limits tests. |
+| Analytics and reporting | analytics | 9 | Partial: scoped aggregate/date/customer KPI tests, filtered delivery drill-down, streaming export lifecycle/format tests, and H2 migration verification. Pending production-scale memory/load evidence and reconciliation with the absent `docs/SPEC.md` §13. |
 | Customer portal | frontend, identity, orders/shipments/billing | 10 | Tenant isolation tests and end-to-end customer journey tests. |
 | Roles and permissions | identity | 0C, 10 | Permission matrix tests, negative object-scope tests, privilege escalation tests. |
 | Audit logs | audit | 0C, 10 | Append-only behavior, redaction, actor/correlation metadata, access-control tests. |

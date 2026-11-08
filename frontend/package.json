@@ -23,6 +23,8 @@
     "antd":"^5.27.4",
     "axios":"^1.13.2",
     "dayjs":"^1.11.19",
+    "echarts":"^5.6.0",
+    "echarts-for-react":"^3.0.2",
     "i18next":"^25.6.3",
     "jalaali-js":"^2.0.0",
     "react":"18.3.1",

@@ -60,6 +60,39 @@ class FoundationApplicationTests {
                 .andExpect(header().string("X-Correlation-ID", "trace-123"));
     }
 
+    @Test void warehouseDashboardIsRoleScopedAndExecutesInventoryAggregates() throws Exception {
+        String organization = java.util.UUID.randomUUID().toString();
+        String warehouse = java.util.UUID.randomUUID().toString();
+        mvc.perform(get("/api/v1/reports/dashboard")
+                        .with(jwt().jwt(token -> token.claim("organizationId", organization)
+                                .claim("warehouseIds", java.util.List.of(warehouse))
+                                .claim("authorities", java.util.List.of("ROLE_WAREHOUSE_OPERATOR")))
+                                .authorities(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_WAREHOUSE_OPERATOR")))
+                        .param("from", "2026-11-01").param("to", "2026-11-30"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.warehouse.inventoryItems").value(0))
+                .andExpect(jsonPath("$.data.delivery").doesNotExist());
+    }
+
+    @Test void administratorDashboardExecutesEveryAvailableAggregateGroup() throws Exception {
+        String organization = java.util.UUID.randomUUID().toString();
+        mvc.perform(get("/api/v1/reports/dashboard")
+                        .with(jwt().jwt(token -> token.claim("organizationId", organization)
+                                .claim("authorities", java.util.List.of("ROLE_ORGANIZATION_ADMIN")))
+                                .authorities(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_ORGANIZATION_ADMIN")))
+                        .param("from", "2026-11-01").param("to", "2026-11-30"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.delivery.deliveryStops").value(0))
+                .andExpect(jsonPath("$.data.fleet.completedTrips").value(0))
+                .andExpect(jsonPath("$.data.warehouse.inventoryItems").value(0))
+                .andExpect(jsonPath("$.data.financial.operatingCostByCurrency").isEmpty());
+    }
+
+    @Test void reportsRequireAnAuthorizedBusinessRole() throws Exception {
+        mvc.perform(get("/api/v1/reports/dashboard").with(jwt()))
+                .andExpect(status().isForbidden());
+    }
+
     @Test void consumesAndDeduplicatesBusinessEventsUsingTheUsersPreferredLocale() {
         var fixture = notificationFixture(true, false);
         String eventId = java.util.UUID.randomUUID().toString();

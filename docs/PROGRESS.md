@@ -1,6 +1,6 @@
 # Project Progress
 
-Last reviewed: 2026-11-06
+Last reviewed: 2026-11-08
 
 ## Current status
 
@@ -12,7 +12,8 @@ Last reviewed: 2026-11-06
 - Phase 4: **Initial TMS vertical slice implemented; full operational validation and browser verification remain incomplete.**
 - Phase 5: **Substantial tracking slice implemented; acceptance is not complete.** Device-authenticated batch GPS ingestion, async batch persistence, event idempotency, monthly event-time partitioning, Redis latest-position projection, tenant-scoped STOMP updates, geofences, ETA estimates, basic exception rules and public tracking links are present. The Control Tower includes fleet/alert/geofence views and trip-history replay. Real map tiles/clustering, rule tuning/notifications, sustained benchmark evidence and production MySQL/Redis/WebSocket verification remain incomplete.
 - Phase 8: **Notification infrastructure implemented; acceptance is not complete.** Notification records/preferences/templates/delivery logs, outbox consumption and deduplication, English/Persian rendering, per-user REST and STOMP authorization, retries/dead-letter handling, and the notification center are present. Order, trip dispatch, ETA, GPS alert, idle, and geofence events are wired; other event types are consumed when their owning business modules publish them. Production SMS/Web Push adapters, browser build verification, and SPEC reconciliation remain outstanding.
-- Phases 1, 2, and 6 through 11: **Not started.**
+- Phase 9: **Initial reporting slice implemented; acceptance is not complete.** Tenant/customer/warehouse-scoped dashboards, date filters, delivery/fleet/warehouse and trip-expense aggregates, daily shipment trends, paged delivery drill-down, CSV/streaming XLSX/PDF asynchronous export jobs, status/download authorization, recurring schedules, and role-specific ECharts dashboards are present. Financial ledger/invoice, reorder thresholds, inventory valuation, availability calendars, and dedicated delivery-attempt source data are absent, so those KPIs remain explicitly unavailable. Build/test/browser verification and reconciliation with the missing `docs/SPEC.md` §13 remain pending.
+- Phases 1, 2, 6, 7, and 10–11: **Not started.**
 - Phase 3: **WMS implementation started; incomplete.**
 - Application implementation: **Backend foundation, identity/authentication, initial order/shipment workflows, and partial WMS vertical slice.** Other business-domain workflows remain unimplemented.
 - Phase 4 includes trip lifecycle/assignment APIs and history, shipment trip linking and reassignment, trip expenses/fuel logs, carrier tender invite/quote/award, routing interfaces with a Haversine estimate adapter, a nearest-neighbor/2-opt heuristic, a pure operational validation policy, and a dispatch board with dnd-kit shipment assignment. Vehicle/load/license/hour checks are available through an explicit validation endpoint and currently rely on caller-supplied snapshots. OSRM/Google adapters, map visualization, stop reordering, automatic route-constraint integration, and full tender/delivery UX are not yet implemented.
@@ -52,6 +53,14 @@ Last reviewed: 2026-11-06
 - [x] Wired order status, shipment assignment, trip dispatch, ETA, GPS, idle, delivery-delay, and geofence events. The consumer also supports document expiry, inventory, POD, invoice, and payment event contracts.
 - [x] Backend tests cover duplicate suppression, language selection, sensitive-content exclusion, provider failure, retries, dead-letter status, REST scoping, and WebSocket destination authorization.
 - [ ] Full Phase 8 acceptance remains pending: `docs/SPEC.md` is absent, source workflows for several event types do not exist yet, production SMS/Web Push providers are deployment-specific, and frontend tests/build could not run because npm dependencies are unavailable and the local cache lacks packages.
+
+## Phase 9 reporting implementation status
+
+- [x] Added indexed report-job/schedule schema and organization/date-filtered delivery, fleet, warehouse, and trip-expense aggregates.
+- [x] Added customer-claim scoping, assigned-warehouse scope enforcement, role-specific response groups, bounded drill-down, and daily status trends.
+- [x] Added asynchronous CSV, Apache POI streaming XLSX, and PDF delivery exports with requester-scoped status/downloads, expiry cleanup, and daily/weekly/monthly schedules.
+- [x] Replaced placeholder staff/customer home dashboards with ECharts KPI, trend, status, performance, inventory, and financial views, plus date/filter controls.
+- [ ] Phase 9 acceptance remains incomplete. Invoice/payment and payable data, inventory valuation/reorder thresholds, vehicle availability, and a dedicated delivery-attempt record are absent; associated KPIs are returned unavailable. Frontend install/build and focused tests are pending, and `docs/SPEC.md` §13 is not present for source reconciliation.
 
 ## Evidence and constraints
 

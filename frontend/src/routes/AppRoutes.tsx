@@ -16,7 +16,7 @@ import {
   UserManagementPage, WorkspaceModulePage,
 } from '@/features/workspaces/WorkspacePages';
 
-const staffRoles = ['PLATFORM_ADMIN', 'ORGANIZATION_ADMIN', 'OPERATIONS_MANAGER', 'ORDER_CLERK', 'TRANSPORT_DISPATCHER', 'WAREHOUSE_OPERATOR'];
+const staffRoles = ['PLATFORM_ADMIN', 'ORGANIZATION_ADMIN', 'OPERATIONS_MANAGER', 'ORDER_CLERK', 'TRANSPORT_DISPATCHER', 'WAREHOUSE_OPERATOR', 'FINANCE_CLERK', 'FINANCE_APPROVER', 'AUDITOR'];
 
 function MasterDataRoute() {
   const { resourceType = '' } = useParams();
